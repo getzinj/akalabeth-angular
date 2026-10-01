@@ -67,6 +67,23 @@ Key codes in the command loop: 141 Return = forward / North, 149 right arrow = t
 136 left arrow = turn left / West, 175 `/` = turn around / South, 216 `X` = enter / climb / stairs,
 193 `A` or 155 Esc = attack, 211 `S` = stats, 208 `P` = pause toggle, 160 space = pass.
 
+## Numbers (verified in phase 3)
+
+- Applesoft's floating point is Microsoft's 6502 BASIC math package, which Microsoft released under MIT
+  ([microsoft/BASIC-M6502](https://github.com/microsoft/BASIC-M6502)). `runtime/applesoft/math-package.ts` ports it
+  register by register: the carry flag, the rounding byte (`FACOV`) and the stray bits of the sign byte all reach
+  results.
+- The Apple-specific differences found are that `FOUT` omits Microsoft's leading space for positive numbers, and
+  that the ROM's `RND` constants are four bytes, so each borrows the next byte (the second borrows the `JSR` opcode
+  after it). Microsoft's source has the same layout. The borrowed fifth byte of the adder shifts out below `FACOV`,
+  which is why the ROM's comment says the addition "does nothing".
+- `RND(-1)` gives `2.99196472E-08`, and the sequence is fully determined by the argument, so the same lucky number
+  gives the same world as on a real Apple II.
+- Expression semantics the fixtures exercise: `FRMEVL` pushes the left operand *rounded*, while the right operand
+  keeps its rounding byte, so `C(2) - RND(1)*25` subtracts a product that still carries its extension.
+- Fixtures were recorded by running the real ROM in py65 (`apps/Akalabeth/tools/oracle`); the ROM itself is
+  built locally from the reconstructed source and never committed.
+
 ## Game rules as listed (to confirm with the oracle)
 
 - **Stats** `C(0..5)` = hit points, strength, dexterity, stamina, wisdom, gold, each `INT(SQR(RND(1))*21+4)`.

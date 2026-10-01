@@ -58,7 +58,7 @@ A standalone, non-Nx Angular 22 repo (Vitest, zoneless, GitHub Pages at `wizardr
 | 0 | Source cross-check, `SOURCE-NOTES.md`, this plan, PLAN.md row; licence decision; originals linked, not vendored (changed in phase 1) | ✅ Done; the line-by-line diff of the two listing copies moves to phase 3 |
 | 1 | Scaffold `apps/Akalabeth`, copied from Moria's `c768313` scaffold (the `nx-generate` skill was not available): 500 kB budget, e2e port 4202, `nx.json` ESLint include, extraction-guard ESLint rule, CI report path widened to `apps/*/e2e`, placeholder 280×192 integer-scaled canvas. No `vercel.json` change | ✅ Lint, typecheck, 7 unit tests, production build (109 kB initial) and the e2e smoke spec pass; the import guard was shown to fail on a deliberate bad import |
 | 2 | Apple II hardware layer: adapt Wizardry's `hires-screen`, palette, text screen and keyboard; add ROM `HPLOT`, text window and `INVERSE`; golden-bitmap specs | ✅ `runtime/`: `HiresScreen` (8 KB page, `HPOSN`/`HPLOT0`/`HGLIN`/`HCLR`/`HCOLOR=` from the reconstructed ROM source, `HFNS` range checks raising `IllegalQuantityError`), `TextScreen` (Monitor window, `COUT`/`CLREOL`/`HOME`/scroll, Applesoft `HTAB`/`VTAB`/`TAB(`/comma/`INVERSE`), `Keyboard` (`$C000`/`$C010` latch, `GET`), `AppleMachine` (`PEEK`/`POKE`/`CALL` map, `HGR`/`TEXT`, mixed-mode render), palette and stand-in font copied from Wizardry. 101 unit tests with ASCII goldens, e2e pixel check, 135 kB initial. `INPUT` line editing moves to phase 5 |
-| 3 | `AppleRnd` and truncation helpers; golden sequences generated once offline from an independent emulator and committed as fixtures. Clean listing from the line-by-line diff | ⬜ |
+| 3 | Numeric fidelity: Applesoft's float package and `RND` | ✅ `runtime/applesoft/math-package.ts` ports Microsoft's MIT 6502 BASIC math package register by register (FIN, FOUT, ROUND, FADD/FSUB/FMULT/FDIV, `^`, INT, SQR, LOG, EXP, ATN, ABS, SGN, unary minus, RND). 4,597 fixture cases recorded from the real ROM (built from cmosher01/Apple-II-Source, MD5-checked, run in py65 by `apps/Akalabeth/tools/oracle`, never committed) all match; a mutation check confirmed the fixtures catch errors. The listing line diff moves to phase 4 |
 | 4 | Oracle interpreter, validated against the phase-3 fixtures | ⬜ |
 | 5 | Game rules, with differential specs against the oracle (dungeon grids for many seeds, perspective tables, scripted key sequences compared after every key) | ⬜ |
 | 6 | Renderers, pixel-diffed against the oracle (every wall, door, ladder, chest; all 10 monsters at every depth) | ⬜ |
@@ -68,6 +68,14 @@ A standalone, non-Nx Angular 22 repo (Vitest, zoneless, GitHub Pages at `wizardr
 | 10 | Extract to its own repo | ⬜ |
 
 Out of scope unless asked: save/load, new classes or monsters, balance changes (the original has no save).
+
+## Phase 4 proposal (decide before starting)
+
+Phase 3 showed the real ROM can run offline in py65. Rather than write an Applesoft interpreter in TypeScript, the
+oracle could run the original listing on the real ROM (plus the Monitor ROM, built the same way) and record golden
+traces: text page and hi-res memory after each key, for scripted sessions. The traces are committed as data; the ROM
+is not. This is more faithful than a hand-written interpreter and less work, but traces can only be regenerated where
+the ROM can be built.
 
 ## Verification
 
