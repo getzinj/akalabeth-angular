@@ -1,0 +1,83 @@
+{
+  "name": "Akalabeth",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "akalabeth",
+  "sourceRoot": "apps/Akalabeth/src",
+  "tags": [
+    "layer:app"
+  ],
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": [
+        "{options.outputPath}"
+      ],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/apps/Akalabeth",
+        "browser": "apps/Akalabeth/src/main.ts",
+        "tsConfig": "apps/Akalabeth/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/Akalabeth/public"
+          }
+        ],
+        "styles": [
+          "apps/Akalabeth/src/styles.scss"
+        ],
+        "index": "apps/Akalabeth/src/index.html",
+        "scripts": [],
+        "baseHref": "/"
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kb",
+              "maximumError": "1mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "4kb",
+              "maximumError": "8kb"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true,
+          "namedChunks": true
+        }
+      }
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@angular/build:dev-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "port": 4202
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "Akalabeth:build:production"
+        },
+        "development": {
+          "buildTarget": "Akalabeth:build:development"
+        }
+      }
+    },
+    "e2e": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "playwright test",
+        "cwd": "apps/Akalabeth/e2e"
+      }
+    }
+  }
+}

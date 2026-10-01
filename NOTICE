@@ -1,0 +1,18 @@
+Akalabeth for the browser
+Copyright (C) 2026 Jeffrey Getzin
+
+The GNU General Public License, version 3 (see LICENSE), is granted for the
+original work of the author of this port only: the Angular shell, the Apple II
+screen emulation, the tooling, and the tests.
+
+Everything in this directory that is ported or translated from Akalabeth: World
+of Doom (1979) - the game logic, its rules and formulas, its messages, and its
+monster and map drawings - is the work of Richard Garriott. The upstream
+repository (https://github.com/videogamepreservation/akalabeth, pinned at commit
+4347170ba0dfcb3e1934886e8763c9a45e9a57a9) states no licence for that work, so
+no licence to it is granted here. It remains under whatever terms its holder
+has, and nothing in this directory's LICENSE extends to it.
+
+This is an unofficial fan project, not affiliated with or endorsed by whoever
+holds those rights. If a rights holder asks for it to come down, it will come
+down promptly. No file from the original repository is distributed here.

@@ -1,9 +1,17 @@
 # Akalabeth source notes (Phase 0)
 
 Reference for the port in [`docs/plans/2026-10-akalabeth-port.md`](../plans/2026-10-akalabeth-port.md).
-The original files are vendored, unmodified, in [`original/`](original/NOTICE.md): `AKLABETH.TXT` (676
-lines, 36,141 bytes, Applesoft `LIST` output), `README.1ST`, `RPG.TXT`, `udic.txt` and 21 screenshots
-(560×385 GIFs: startup, overworld, town, Lord British, chest, trap door and the ten monsters). See §Licence.
+The original files are **linked, not vendored**. The game draws everything as vector lines and text, so it uses no
+original image or text file. Everything below refers to
+[`videogamepreservation/akalabeth`](https://github.com/videogamepreservation/akalabeth) pinned at commit
+`4347170ba0dfcb3e1934886e8763c9a45e9a57a9`:
+
+- `AKLABETH.TXT`: 676 lines, 36,141 bytes, SHA-256 `89d07ef8fda0887a80e138da26ff31580f46a04a0aece41e8e1e40c020607d25`
+  ([raw](https://raw.githubusercontent.com/videogamepreservation/akalabeth/4347170ba0dfcb3e1934886e8763c9a45e9a57a9/AKLABETH.TXT)).
+  Applesoft `LIST` output.
+- `README.1ST`, `RPG.TXT`, `udic.txt`, and 21 screenshots (560×385 GIFs) in the same repository.
+
+The oracle (phase 4) will fetch the listing with a script that checks the SHA-256 and writes to a gitignored folder.
 
 ## Provenance and cross-check
 
@@ -74,10 +82,13 @@ Key codes in the command loop: 141 Return = forward / North, 149 right arrow = t
   which is not the same as licensing it.
 - The C128 port is CC0, but it is derived work, so that does not clear the original.
 - Not verified: who holds rights to the name "Akalabeth", the GIFs and `RPG.TXT`.
-- **Decision (owner, 2026-10-01):** keep the name "Akalabeth", publish, and vendor the original files with a
-  [NOTICE](original/NOTICE.md). If a rights holder asks, the app and the files come down promptly. The risk is
-  accepted knowingly; it is not cleared.
-- This differs from `getzinj/wizardry-angular`, which vendors no original data (the player supplies their own
+- **Decision (owner, 2026-10-01):** keep the name "Akalabeth" and publish. Ship only assets the game actually uses
+  (none from the original) and link to the original repository for everything else. If a rights holder asks, the
+  app comes down promptly. The risk is accepted knowingly; it is not cleared. The wording is in
+  [`apps/Akalabeth/NOTICE`](../../apps/Akalabeth/NOTICE).
+- An earlier commit on the phase-0 branch vendored the original files; they were removed again in phase 1. Squash-merge
+  so the originals never reach `main`.
+- This differs from `getzinj/wizardry-angular`, which also vendors no original data (the player supplies their own
   disk). Stonequest itself renamed.
 - Fonts: the Apple II character ROM is Apple-copyrighted and is not part of the original project; use a freely
   licensed Apple II-style font.

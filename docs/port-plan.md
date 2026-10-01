@@ -34,7 +34,7 @@ A standalone, non-Nx Angular 22 repo (Vitest, zoneless, GitHub Pages at `wizardr
 - **Same as Wizardry:** one async game loop suspended on key input, `no-floating-promises`, synthetic fixtures so CI
   needs no original data, screens asserted as ASCII.
 - **Deploy** as a static site on GitHub Pages with a CNAME after extraction, not Vercel.
-- **Legal:** Wizardry vendors no original data; Akalabeth deliberately does (decision in `SOURCE-NOTES.md` §Licence).
+- **Legal:** like Wizardry, Akalabeth vendors no original data; it links to the original repo pinned at a commit. Unlike Wizardry, it uses the original name and publishes (decision in `SOURCE-NOTES.md` §Licence).
 
 ## Architecture (`apps/Akalabeth/src/app/`; no Firebase, auth or `api/`)
 
@@ -55,8 +55,8 @@ A standalone, non-Nx Angular 22 repo (Vitest, zoneless, GitHub Pages at `wizardr
 
 | Phase | Description | Status |
 |---|---|---|
-| 0 | Source cross-check, `SOURCE-NOTES.md`, this plan, PLAN.md row; licence decision; vendor originals with NOTICE | 🟡 Done except the line-by-line diff of the two listing copies, which moves to phase 3 |
-| 1 | Scaffold `apps/Akalabeth` (via `nx-generate`, mirroring `c768313`): 500 kB budget, e2e port 4202, `nx.json` ESLint include, CI e2e job. No `vercel.json` change | ⬜ |
+| 0 | Source cross-check, `SOURCE-NOTES.md`, this plan, PLAN.md row; licence decision; originals linked, not vendored (changed in phase 1) | ✅ Done; the line-by-line diff of the two listing copies moves to phase 3 |
+| 1 | Scaffold `apps/Akalabeth`, copied from Moria's `c768313` scaffold (the `nx-generate` skill was not available): 500 kB budget, e2e port 4202, `nx.json` ESLint include, extraction-guard ESLint rule, CI report path widened to `apps/*/e2e`, placeholder 280×192 integer-scaled canvas. No `vercel.json` change | ✅ Lint, typecheck, 7 unit tests, production build (109 kB initial) and the e2e smoke spec pass; the import guard was shown to fail on a deliberate bad import |
 | 2 | Apple II hardware layer: adapt Wizardry's `hires-screen`, palette, text screen and keyboard; add ROM `HPLOT`, text window and `INVERSE`; golden-bitmap specs | ⬜ |
 | 3 | `AppleRnd` and truncation helpers; golden sequences generated once offline from an independent emulator and committed as fixtures. Clean listing from the line-by-line diff | ⬜ |
 | 4 | Oracle interpreter, validated against the phase-3 fixtures | ⬜ |
@@ -80,7 +80,7 @@ Out of scope unless asked: save/load, new classes or monsters, balance changes (
 
 ## Open items
 
-1. **Licence and name.** Decided: keep the name, publish, vendor originals with a NOTICE, comply with any takedown.
+1. **Licence and name.** Decided: keep the name, publish, link to the original repo instead of vendoring, comply with any takedown.
    Risk accepted, not cleared. See `SOURCE-NOTES.md` §Licence.
 2. **"Simulating rastering"** is read as CRT scanline and phosphor simulation plus an optional authentic draw
    speed. Confirm.
