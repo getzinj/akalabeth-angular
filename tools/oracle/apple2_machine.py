@@ -213,6 +213,19 @@ class Apple2:
             address += size
         return found
 
+    def set_simple_variable(self, name: str, packed: bytes) -> None:
+        """Overwrites an existing real variable in place, as a debugger would."""
+        address = self.word(VARTAB)
+        end = self.word(ARYTAB)
+        while address < end:
+            first, second = self.memory.ram[address], self.memory.ram[address + 1]
+            found = chr(first & 0x7F) + (chr(second & 0x7F) if (second & 0x7F) else '')
+            if found == name and not (first & 0x80) and not (second & 0x80):
+                self.memory.ram[address + 2:address + 7] = packed
+                return
+            address += 7
+        raise KeyError(name)
+
     def simple_variables(self) -> dict:
         found = {}
         address = self.word(VARTAB)
