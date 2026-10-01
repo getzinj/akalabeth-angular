@@ -19,6 +19,9 @@ ARYTAB = 0x6B
 STREND = 0x6D
 
 POLLS_BEFORE_KEY = 30
+# The Monitor looks at the keyboard for Ctrl-S each time it prints a carriage return (VIDWAIT's
+# LDY KBD); that is not the program waiting for a key.
+VIDWAIT_READ = 0xFB7C
 
 
 def text_row_address(row: int) -> int:
@@ -88,8 +91,9 @@ class Apple2:
 
     def io_read(self, address: int) -> int:
         if address == KBD:
-            # Applesoft looks for Ctrl-C after every statement; only reads that wait count.
-            if self.keyboard < 0x80 and self.current_pc != self.iscntc:
+            # Applesoft looks for Ctrl-C after every statement and the Monitor for Ctrl-S after every
+            # carriage return; only reads that wait count.
+            if self.keyboard < 0x80 and self.current_pc not in (self.iscntc, VIDWAIT_READ):
                 self.polls += 1
                 if self.polls >= POLLS_BEFORE_KEY and self.keys:
                     self.latch_next_key()

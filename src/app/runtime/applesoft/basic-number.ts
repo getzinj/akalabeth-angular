@@ -33,6 +33,16 @@ export class BasicNumber {
   }
 
 
+  /** VAL: the number a string starts with, or zero. */
+  public static val(text: string): BasicNumber {
+    const math: MathPackage = new MathPackage();
+
+    math.fin(text);
+
+    return new BasicNumber(math.fac);
+  }
+
+
   /** An integer variable or counter as GIVAYF floats it. */
   public static of(integer: number): BasicNumber {
     let value: BasicNumber = BasicNumber.ZERO;

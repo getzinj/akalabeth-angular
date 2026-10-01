@@ -105,6 +105,29 @@ Key codes in the command loop: 141 Return = forward / North, 149 right arrow = t
   Back in the overworld the window is no longer rows 20–23, so later messages scroll up through rows the graphics
   cover. The traces capture this.
 
+## Rules and input behaviour found in phase 5a
+
+- **Integer stores round down.** `A%=-1.5` stores -2 (AYINT); subscripts use MKINT, which truncates positives and raises
+  `?ILLEGAL QUANTITY` for negatives. AYINT also refuses -32768 because its limit constant is one byte short (the fifth
+  byte is the `$20` of the next instruction), so the limit is -32768.00049.
+- **No short-circuit.** `IF A AND RND(1)>.5` and `IF X-2>IN OR RND(1)>.4` always evaluate the `RND`, so the random stream
+  advances whether or not the first test passed (lines 41 and 2010). The ports spend the roll in the same places.
+- **Lucky number 0 reseeds nothing.** `RND(-ABS(0))` is `RND(0)`, which repeats the last number, so the world depends on
+  the random numbers rolled for the attributes first (lines 60010-60050). Creation runs before the world on one stream.
+- **The seed is set twice.** Line 60010 and line 8 both reseed from `LN`, so re-rolling attributes does not change the world.
+- **Stale monster slots.** `ML%(X,0..1)` is only written for monsters that are placed, so a slot that was not placed
+  keeps the square it had on an earlier level. Nothing reads it while `MZ%(X,0)` is 0.
+- **`PRINT` at the bottom of a narrow window scrolls it.** The shop sets the window to rows 12-14 and then prints at rows
+  17-24, so each carriage return scrolls rows 12-14 and leaves the cursor where it was. That is why the price and damage
+  columns land on one row.
+- **INPUT for a string variable** skips leading spaces, ends an unquoted value at a comma or colon, strips quotes, and
+  prints `?EXTRA IGNORED` when anything is left. Return clears to the end of the line before the carriage return,
+  backspace steps back (past the start it abandons the line), Ctrl-X cancels with a backslash, and the right arrow copies
+  the character under the cursor. Not ported: text after a closing quote (the ROM restarts oddly), Ctrl-C and ESC.
+- **Oracle fix.** The Monitor reads the keyboard for Ctrl-S at every carriage return (`VIDWAIT`, `$FB7C`). The harness
+  counted those reads as the program waiting, so a key could be latched, and its screen recorded, in the middle of
+  drawing the shop. Those reads no longer count and the session traces were regenerated.
+
 ## Game rules as listed (to confirm with the oracle)
 
 - **Stats** `C(0..5)` = hit points, strength, dexterity, stamina, wisdom, gold, each `INT(SQR(RND(1))*21+4)`.

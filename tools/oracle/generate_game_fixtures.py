@@ -280,6 +280,23 @@ def session_knighthood() -> dict:
             'steps': recorder.finish()}
 
 
+INPUT_LINES = ['7', '  5', '1,2', 'a:b', '"7"', '"7', '12abc', '-3', '1e2', '.5', '', '  ', '1 2', ' -1.5E1',
+               '+4', '0', '1,', ':', '"a,b",3', '1979', '65535', '2.5', '-0.25', 'abc', '1E', '1E+', '--1',
+               'ab\x08c', '12\x185', '\x085', 'ab\x08\x08\x08c', '1.2.3', '0.000001', '12345678901', '1,2,3']
+
+
+def record_input(typed: str) -> dict:
+    machine = typed_machine()
+    press(machine, 'RUN\r', typed + '\r')
+    variables = machine.simple_variables()
+    return {
+        'typed': typed,
+        'string': variables.get('Q$'),
+        'lucky': variables.get('LN'),
+        'rows': [row.rstrip() for row in machine.text_lines()[3:9]],
+    }
+
+
 def main(stages: list) -> None:
     (OUT / 'sessions').mkdir(parents=True, exist_ok=True)
 
@@ -294,6 +311,11 @@ def main(stages: list) -> None:
             print('world', lucky, flush=True)
         (OUT / 'tables.json').write_text(json.dumps(tables, separators=(',', ':')) + '\n')
         (OUT / 'worlds.json').write_text(json.dumps(worlds, separators=(',', ':')) + '\n')
+
+    if 'input' in stages:
+        records = [record_input(typed) for typed in INPUT_LINES]
+        (OUT / 'input.json').write_text(json.dumps(records, separators=(',', ':')) + '\n')
+        print('input', len(records), flush=True)
 
     if 'dungeons' in stages:
         worlds = json.loads((OUT / 'worlds.json').read_text())

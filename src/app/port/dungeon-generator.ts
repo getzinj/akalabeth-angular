@@ -1,4 +1,4 @@
-import { ApplesoftRandom } from '../runtime/applesoft/applesoft-random';
+import type { ApplesoftRandom } from '../runtime/applesoft/applesoft-random';
 import { BasicNumber } from '../runtime/applesoft/basic-number';
 
 // A dungeon level (listing lines 500-590 and 2000-2090). Line 520 also writes DNG(Y,X), without
@@ -77,7 +77,7 @@ export function generateDungeonLevel(random: ApplesoftRandom, request: IDungeonR
   }
 
   placeFeatures(random, dungeon);
-  placeLaddersAndHoles(level, dungeon);
+  placeLadders(level, dungeon);
   placeMonsters(random, request, dungeon);
 }
 
@@ -96,7 +96,7 @@ const FEATURE_ROLLS: readonly [ string, number, boolean ][] = [
 ];
 
 
-/** Lines 530-568: ten rolls for each pair of mirrored squares in the even rows and columns. */
+/** Lines 530-568: ten rolls for each pair of mirrored squares: trap doors (2), doors (3), secret doors (4), chests (5), ladders both ways (9). */
 function placeFeatures(random: ApplesoftRandom, dungeon: IDungeonLevel): void {
   const squares: number[][] = dungeon.squares;
 
@@ -116,8 +116,8 @@ function placeFeatures(random: ApplesoftRandom, dungeon: IDungeonLevel): void {
 }
 
 
-/** Lines 569-580: squares 7 and 8 trade places on alternate levels, and level 1 is special. */
-function placeLaddersAndHoles(level: number, dungeon: IDungeonLevel): void {
+/** Lines 569-580: the ladders down (7) and up (8) trade places on alternate levels; level 1 has its way out at 1,1. */
+function placeLadders(level: number, dungeon: IDungeonLevel): void {
   const squares: number[][] = dungeon.squares;
   const isEven: boolean = (level % 2) === 0;
 

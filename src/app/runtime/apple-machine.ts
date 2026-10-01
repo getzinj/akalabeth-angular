@@ -1,5 +1,7 @@
 import type { IApplePalette, IRgb } from './apple-palette';
 import { GLYPH_HEIGHT, HIRES_WIDTH, MIXED_GRAPHICS_ROWS, MIXED_TEXT_TOP, PIXELS_PER_BYTE, TEXT_COLUMNS, TEXT_ROWS } from './apple-hires.constants';
+import { parseInputString } from './applesoft-input';
+import type { IInputParse } from './applesoft-input';
 import { UnemulatedAddressError } from './applesoft-errors';
 import { getadr } from './applesoft-numbers';
 import { glyphFor } from './builtin-font';
@@ -176,6 +178,31 @@ export class AppleMachine implements IRenderableScreen {
     }
 
     return typed.slice(0, Math.min(index, MAXIMUM_LINE)).map((value: number): string => String.fromCharCode(value & 0x7F)).join('');
+  }
+
+
+  /** INPUT "prompt";A$ : the prompt, a line, and Applesoft's reading of it. */
+  public async input(prompt: string): Promise<string> {
+    let parsed: IInputParse | null = null;
+
+    while (parsed == null) {
+      this.text.print(prompt);
+      const attempt: IInputParse = parseInputString(await this.readLine());
+
+      if (attempt.reenter) {
+        this.text.print('?REENTER');
+        this.text.crdo();
+      } else {
+        parsed = attempt;
+      }
+    }
+
+    if (parsed.extraIgnored) {
+      this.text.print('?EXTRA IGNORED');
+      this.text.crdo();
+    }
+
+    return parsed.value;
   }
 
 

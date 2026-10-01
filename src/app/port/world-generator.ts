@@ -1,4 +1,4 @@
-import { ApplesoftRandom } from '../runtime/applesoft/applesoft-random';
+import type { ApplesoftRandom } from '../runtime/applesoft/applesoft-random';
 import { BasicNumber } from '../runtime/applesoft/basic-number';
 
 // The overworld (listing lines 8 and 30-50): a 21x21 grid with a mountain wall round the edge,
