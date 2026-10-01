@@ -270,7 +270,7 @@ def session_dungeon(lucky: str, kind: str, shopping: str, seed: int, keys: int) 
 
 
 def session_knighthood() -> dict:
-    machine, recorder, world = started_session('3', '1', 'Y', 'F', 'Q')
+    machine, recorder, world = started_session('3', '1', 'Y', 'F', 'FFFFFFQ')
     keys, _castle = path_to(world, world['start'], 5)
     press(machine, *keys, 'X', 'ARTHUR\r', 'Y', ' ')
     # Debugger-style setup: all ten quests done, then report back.
@@ -308,11 +308,12 @@ def main(stages: list) -> None:
             print('dungeons', world['lucky'], flush=True)
         (OUT / 'dungeons.json').write_text(json.dumps(dungeons, separators=(',', ':')) + '\n')
 
-    if 'sessions' in stages:
-        for make in [session_creation, session_overworld, session_knighthood,
-                     lambda: session_dungeon('1', 'F', 'FFFFRASBMQ', 11, 150),
-                     lambda: session_dungeon('2', 'M', 'FFFFMMQ', 12, 150),
-                     lambda: session_dungeon('5', 'F', 'FFRQ', 13, 250)]:
+    if 'sessions' in stages or 'later-sessions' in stages:
+        makers = [session_creation, session_overworld, session_knighthood,
+                  lambda: session_dungeon('1', 'F', 'FFFFRASBMQ', 11, 150),
+                  lambda: session_dungeon('2', 'M', 'FFFFMMQ', 12, 150),
+                  lambda: session_dungeon('5', 'F', 'FFFFFRQ', 13, 250)]
+        for make in makers[2:] if 'later-sessions' in stages else makers:
             session = make()
             (OUT / 'sessions' / f"{session['name']}.json").write_text(json.dumps(session, separators=(',', ':')) + '\n')
             print('session', session['name'], len(session['steps']), flush=True)
