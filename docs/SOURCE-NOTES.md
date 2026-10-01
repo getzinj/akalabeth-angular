@@ -84,6 +84,23 @@ Key codes in the command loop: 141 Return = forward / North, 149 right arrow = t
 - Fixtures were recorded by running the real ROM in py65 (`apps/Akalabeth/tools/oracle`); the ROM itself is
   built locally from the reconstructed source and never committed.
 
+## Listing corrections and loading (phase 4)
+
+- The deferred line-by-line comparison with the CC0 C128 copy is done. After normalising spacing, 225 of 383 lines
+  are identical and 3 are absent from the C128 port (70, 7001, 60082). Every other difference is a C128 adaptation:
+  keyboard codes, reverse-video escapes, `GETKEY` loops, `POKE 198`, `TAB` in place of `HTAB`, and one C128 typo
+  ("BALRON"). Only one repair is needed, and `tools/oracle/listing.py` applies it:
+  - **Line 1663**: `DAM  ( RND (1) ...` → `DAM = ( RND (1) * DAM + C(1) / 5)`. The `=` was lost; without it the line is a
+    syntax error.
+- **Load address (assumption).** The program is about 23 KB. Loaded at the default `$0801` it overlaps hi-res page 1
+  (`$2000`–`$3FFF`), and the first `HGR` erases it (`?UNDEF'D STATEMENT` from line 70, then endless `ONERR` restarts).
+  The original disk must have loaded it above the page. The oracle moves the program start to `$4001`
+  (`POKE 103,1: POKE 104,64: POKE 16384,0: NEW`), which is the usual way. Line 5's `HIMEM: 49151` then leaves room for
+  variables.
+- **Observed quirk.** The stats screen (`S`, line 1700) ends with `TEXT`, which resets the text window to full screen.
+  Back in the overworld the window is no longer rows 20–23, so later messages scroll up through rows the graphics
+  cover. The traces capture this.
+
 ## Game rules as listed (to confirm with the oracle)
 
 - **Stats** `C(0..5)` = hit points, strength, dexterity, stamina, wisdom, gold, each `INT(SQR(RND(1))*21+4)`.
