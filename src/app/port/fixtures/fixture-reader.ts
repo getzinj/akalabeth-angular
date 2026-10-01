@@ -54,6 +54,8 @@ export interface ISessionSetup {
   /** or one cell of the real array C() or PW() set to this */
   readonly array?: 'C' | 'PW';
   readonly index?: number;
+  /** or one square of DNG%() set to this value (with `square`) */
+  readonly square?: readonly [ number, number ];
   readonly value?: number;
 }
 

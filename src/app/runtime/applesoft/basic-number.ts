@@ -149,6 +149,24 @@ export class BasicNumber {
   }
 
 
+  /** GETADR, as HPLOT's horizontal coordinate reads it: 0 to 65535, a negative one wrapping round. */
+  public toAddress(): number {
+    MATH.fac = this.image;
+    MATH.getadr();
+
+    return (MATH.fac[3] << 8) | MATH.fac[4];
+  }
+
+
+  /** GETBYT, as HPLOT's vertical coordinate reads it: 0 to 255, anything else throws. */
+  public toByte(): number {
+    MATH.fac = this.image;
+    MATH.conint();
+
+    return MATH.fac[4];
+  }
+
+
   public isLessThan(right: BasicNumber): boolean {
     return this.compared(right) === 1;
   }

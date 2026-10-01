@@ -1,4 +1,5 @@
 import binaryCases from './fixtures/binary.json';
+import addressCases from './fixtures/address.json';
 import compareCases from './fixtures/compare.json';
 import finCases from './fixtures/fin.json';
 import foutCases from './fixtures/fout.json';
@@ -155,6 +156,34 @@ describe('MathPackage', (): void => {
     }
 
     it.each(integerCases as [ string, string, number | null ][])('%s of %s', (routine: string, argument: string, expected: number | null): void => {
+      expect(converted(routine, argument)).toBe(expected);
+    });
+  });
+
+  describe('GETADR and CONINT', (): void => {
+    function converted(routine: string, argument: string): number | null {
+      const math: MathPackage = new MathPackage();
+      let result: number | null = null;
+
+      math.fac = image(argument);
+      try {
+        if (routine === 'GETADR') {
+          math.getadr();
+          result = (math.fac[3] << 8) | math.fac[4];
+        } else {
+          math.conint();
+          result = math.fac[4];
+        }
+      } catch (error) {
+        if (!(error instanceof IllegalQuantityError)) {
+          throw error;
+        }
+      }
+
+      return result;
+    }
+
+    it.each(addressCases as [ string, string, number | null ][])('%s of %s', (routine: string, argument: string, expected: number | null): void => {
       expect(converted(routine, argument)).toBe(expected);
     });
   });

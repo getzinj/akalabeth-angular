@@ -138,3 +138,15 @@ for base in range(-12, 13):
         result = attempt(lambda: rom.binary('^', base_image, exponent_image))
         power_cases.append([hexes(base_image), hexes(exponent_image), None if result is None else hexes(result)])
 write('power', power_cases)
+
+
+address_cases = []
+extra = [rom.fin(text) for text in ['0', '1', '255', '255.9', '256', '279', '280', '191.5', '192', '65535', '65535.5',
+                                    '65536', '-.5', '-1', '-0.99999', '.5', '139.66666', '134.99999999', '135.00000001']]
+for routine in ['GETADR', 'CONINT']:
+    for argument in extra + [random_image(0x78, 0x93) for _ in range(300)]:
+        try:
+            address_cases.append([routine, hexes(argument), rom.integer(routine, argument)])
+        except ApplesoftError:
+            address_cases.append([routine, hexes(argument), None])
+write('address', address_cases)

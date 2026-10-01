@@ -145,6 +145,8 @@ class Applesoft:
         self.set_fac(image)
         self.call(self.labels[routine], preload_fac_flags=True)
         value = (self.mpu.memory[FAC + 3] << 8) | self.mpu.memory[FAC + 4]
+        if routine in ('GETADR', 'CONINT'):
+            return value
         return value - 0x10000 if value >= 0x8000 else value
 
     def compare(self, left: list, right: list) -> int:

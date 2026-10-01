@@ -149,6 +149,23 @@ Key codes in the command loop: 141 Return = forward / North, 149 right arrow = t
 - **Replaying the oracle.** Sessions carry `setups` for what the scripts changed in memory (`TASK`, one cell of `C()` or
   `PW()`), applied before the key at `beforeKey`. Hi-res pages are recorded but not compared until phase 6.
 
+## Drawing (phase 6)
+
+- **The coordinates are expressions, not numbers.** `HPLOT C - 15 / DI,B - 30 / DI` divides in 5-byte floats and the
+  result is cut down by the ROM: X through `GETADR` (below 65536 in size, truncated, a negative value wrapping round and
+  so failing the below-280 test) and Y through `GETBYT` (not negative, below 256, then below 192). The port evaluates the
+  program's own text with `basic-expression.ts` rather than copying numbers, so a rounding at an exact boundary falls
+  where the original's did.
+- **`DI` is `DIS`.** Names count for two letters, so the monster art's `DI` reads the corridor distance.
+- **`HPLOT TO`** starts from the last point plotted, which can be the end of the previous BASIC line (lines 305 and 311).
+- **A monster in a wall square is still drawn.** Doors and secret doors can hold a monster (a monster may step onto any
+  square that is not a wall, a trap or another monster), and line 212 jumps to 260 after the box, so the art is drawn
+  against the door and the name printed.
+- **A Mimic is drawn as the chest** (lines 370-372).
+- **Gallery.** The `gallery-10` scenario sets `DNG%` squares in memory, opening the first corridor and standing each
+  monster in it at distances 1, 2, 3, 5 and 8, so lines 360-400 and 3087-3089 are compared even though play rarely shows
+  them.
+
 ## Game rules as listed (to confirm with the oracle)
 
 - **Stats** `C(0..5)` = hit points, strength, dexterity, stamina, wisdom, gold, each `INT(SQR(RND(1))*21+4)`.

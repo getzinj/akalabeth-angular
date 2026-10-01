@@ -245,6 +245,11 @@ class Apple2:
         cell = self.array_cell_address(name, indexes)
         self.memory.ram[cell:cell + 5] = packed
 
+    def set_integer_array_cell(self, name: str, indexes: list, value: int) -> None:
+        cell = self.array_cell_address(name, indexes)
+        self.memory.ram[cell] = (value >> 8) & 0xFF
+        self.memory.ram[cell + 1] = value & 0xFF
+
     def set_simple_variable(self, name: str, packed: bytes) -> None:
         """Overwrites an existing real variable in place, as a debugger would."""
         address = self.word(VARTAB)

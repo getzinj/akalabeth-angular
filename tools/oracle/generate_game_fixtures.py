@@ -440,6 +440,27 @@ def poke_cell(machine: Apple2, recorder: Recorder, array: str, index: int, value
     recorder.setups.append({'beforeKey': len(recorder.steps), 'array': array, 'index': index, 'value': value})
 
 
+def poke_square(machine: Apple2, recorder: Recorder, x: int, y: int, value: int) -> None:
+    """Debugger-style: one square of DNG%() set in memory. The spec repeats it before the next key."""
+    machine.set_integer_array_cell('DN%', [x, y], value)
+    recorder.setups.append({'beforeKey': len(recorder.steps), 'square': [x, y], 'value': value})
+
+
+def session_gallery() -> dict:
+    """Every monster at several distances down an opened corridor, for the renderers."""
+    machine, recorder, world = started_session('10', '1', 'Y', 'F', 'FQ')
+    enter_first_dungeon(machine, world)
+    poke_cell(machine, recorder, 'C', 0, 1000)
+    poke_cell(machine, recorder, 'PW', 0, 200)
+    for monster in range(1, 11):
+        for distance in (1, 2, 3, 5, 8):
+            for x in range(2, 10):
+                poke_square(machine, recorder, x, 1, 0)
+            poke_square(machine, recorder, 1 + distance, 1, 10 * monster)
+            press(machine, ' ')
+    return finish('gallery-10', '10', recorder)
+
+
 def session_amulet_fighter() -> dict:
     machine, recorder, world = started_session('10', '1', 'Y', 'F', 'MSFQ')
     press(machine, 'P')
@@ -567,7 +588,7 @@ def session_knighthood_top_level() -> dict:
     return finish('knighthood-top-3', '3', recorder)
 
 
-SCENARIOS = [session_amulet_fighter, session_amulet_mage, session_traps_and_chests, session_fleeing_monsters,
+SCENARIOS = [session_gallery, session_amulet_fighter, session_amulet_mage, session_traps_and_chests, session_fleeing_monsters,
              session_thieves_and_gremlins, session_starvation, session_court, session_knighthood_top_level]
 
 
@@ -586,8 +607,8 @@ def main(stages: list) -> None:
         (OUT / 'tables.json').write_text(json.dumps(tables, separators=(',', ':')) + '\n')
         (OUT / 'worlds.json').write_text(json.dumps(worlds, separators=(',', ':')) + '\n')
 
-    if 'scenarios' in stages:
-        for make in SCENARIOS:
+    if 'scenarios' in stages or 'gallery' in stages:
+        for make in (SCENARIOS if 'scenarios' in stages else [session_gallery]):
             session = make()
             (OUT / 'sessions' / f"{session['name']}.json").write_text(json.dumps(session, separators=(',', ':')) + '\n')
             print('session', session['name'], len(session['steps']), flush=True)

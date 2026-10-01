@@ -1121,6 +1121,24 @@ export class MathPackage {
   }
 
 
+  /** GETADR: FAC below 65536 in size, truncated to 16 bits in FACMO and FACLO, a negative one wrapping round. */
+  public getadr(): void {
+    if (this.m[FACEXP] >= 0x91) {
+      throw new IllegalQuantityError();
+    }
+    this.qint();
+  }
+
+
+  /** CONINT: as MKINT, and the result must also fit in a byte, left in FACLO. */
+  public conint(): void {
+    this.mkint();
+    if (this.m[FACMO] !== 0) {
+      throw new IllegalQuantityError();
+    }
+  }
+
+
   /** MKINT: as AYINT, for subscripts, and negative values are an error. */
   public mkint(): void {
     if ((this.m[FACSGN] & 0x80) !== 0) {
