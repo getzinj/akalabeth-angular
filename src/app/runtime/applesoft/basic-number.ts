@@ -113,6 +113,11 @@ export class BasicNumber {
   }
 
 
+  public sgn(): BasicNumber {
+    return this.applied((): void => MATH.sgn());
+  }
+
+
   public sqr(): BasicNumber {
     return this.applied((): void => MATH.sqr());
   }

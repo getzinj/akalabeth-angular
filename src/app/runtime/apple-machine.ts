@@ -20,6 +20,7 @@ const CLREOL: number = 0xFC9C;
 const HCLR: number = 0xF3F2;
 
 const KEY_PICK: number = 0x95;
+const KEY_ESCAPE: number = 0x9B;
 const KEY_CANCEL_LINE: number = 0x98;
 const LINE_MARGIN: number = 0xF8;
 const MAXIMUM_LINE: number = 239;
@@ -38,6 +39,7 @@ export class AppleMachine implements IRenderableScreen {
   public readonly keyboard: Keyboard = new Keyboard();
 
   private graphicsMode: boolean = false;
+  private hiresSwitchesSet: boolean = false;
 
 
   public get dirty(): boolean {
@@ -56,9 +58,16 @@ export class AppleMachine implements IRenderableScreen {
   }
 
 
+  /** The display switches as the oracle names them: GRAPHICS or TEXT, then +MIXED+HIRES once HGR has run. */
+  public get modeSwitches(): string {
+    return (this.graphicsMode ? 'GRAPHICS' : 'TEXT') + (this.hiresSwitchesSet ? '+MIXED+HIRES' : '');
+  }
+
+
   /** HGR: page 1, mixed mode, and clear. It leaves the text window alone. */
   public hgr(): void {
     this.graphicsMode = true;
+    this.hiresSwitchesSet = true;
     this.hires.hclr();
   }
 
@@ -130,6 +139,19 @@ export class AppleMachine implements IRenderableScreen {
   }
 
 
+  /** RDCHAR: as RDKEY, except that ESC swallows the key after it (the escape functions are not ported). */
+  private async readTypedCharacter(): Promise<number> {
+    let code: number = await this.readKey();
+
+    while (code === KEY_ESCAPE) {
+      await this.readKey();
+      code = await this.readKey();
+    }
+
+    return code;
+  }
+
+
   /**
    * INPUT's line editing, which is the Monitor's GETLN: typed characters are echoed, the left
    * arrow backs up (and past the start abandons the line), Ctrl-X cancels with a backslash and the
@@ -141,7 +163,7 @@ export class AppleMachine implements IRenderableScreen {
     let finished: boolean = false;
 
     while (!finished) {
-      let code: number = await this.readKey();
+      let code: number = await this.readTypedCharacter();
 
       if (code === KEY_PICK) {
         code = this.text.codeUnderCursor;

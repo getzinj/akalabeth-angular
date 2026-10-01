@@ -101,6 +101,16 @@ export class Keyboard {
   }
 
 
+  /** Resolves on the next key pressed, even when an unread one is already latched. */
+  public async nextPress(): Promise<number> {
+    await new Promise<void>((resolve: () => void): void => {
+      this.waiter = resolve;
+    });
+
+    return this.data;
+  }
+
+
   /** GET: waits for a key, clears the strobe and returns the character. */
   public async get(): Promise<string> {
     const code: number = await this.waitForKey();

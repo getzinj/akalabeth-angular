@@ -47,10 +47,23 @@ export interface ISessionStep {
 }
 
 
+export interface ISessionSetup {
+  readonly beforeKey: number;
+  /** TASK set to this */
+  readonly task?: number;
+  /** or one cell of the real array C() or PW() set to this */
+  readonly array?: 'C' | 'PW';
+  readonly index?: number;
+  readonly value?: number;
+}
+
+
 export interface ISessionFixture {
   readonly name: string;
   readonly lucky: string;
   readonly setup?: string;
+  /** Memory the oracle's script changed between keys, as a debugger would, before the key at this step. */
+  readonly setups?: readonly ISessionSetup[];
   readonly steps: readonly ISessionStep[];
 }
 

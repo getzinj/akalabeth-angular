@@ -4,6 +4,7 @@ import finCases from './fixtures/fin.json';
 import foutCases from './fixtures/fout.json';
 import functionCases from './fixtures/function.json';
 import integerCases from './fixtures/integer.json';
+import powerCases from './fixtures/power.json';
 import rndCases from './fixtures/rnd.json';
 import roundCases from './fixtures/round.json';
 import type { FacImage } from './math-package';
@@ -80,6 +81,30 @@ describe('MathPackage', (): void => {
       performers[operation](math);
 
       expect(hex(math.fac)).toBe(expected);
+    });
+  });
+
+  describe('powers of whole numbers, negative ones included', (): void => {
+    function raised(base: string, exponent: string): string | null {
+      const math: MathPackage = new MathPackage();
+      let result: string | null = null;
+
+      math.fac = image(exponent);
+      math.setArg(pushed(base));
+      try {
+        math.fpwrt();
+        result = hex(math.fac);
+      } catch (error) {
+        if (!(error instanceof IllegalQuantityError)) {
+          throw error;
+        }
+      }
+
+      return result;
+    }
+
+    it.each(powerCases as [ string, string, string | null ][])('%s to the power %s', (base: string, exponent: string, expected: string | null): void => {
+      expect(raised(base, exponent)).toBe(expected);
     });
   });
 

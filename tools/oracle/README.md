@@ -40,7 +40,7 @@ reproduces the same files.
 
 ```sh
 python3 generate_game_fixtures.py   # about 15 minutes; caches the typed-in program under rom/
-python3 generate_game_fixtures.py input   # one stage only: worlds, dungeons, sessions, dungeon-sessions or input
+python3 generate_game_fixtures.py input   # one stage only: worlds, dungeons, sessions, dungeon-sessions, scenarios or input
 ```
 
 writes `src/app/port/fixtures/`: the perspective tables, worlds for 36 lucky numbers, dungeons for three worlds

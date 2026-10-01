@@ -148,6 +148,7 @@ class Recorder:
         self.previous_mode = None
         self.previous_hires = None
         self.errors = []
+        self.setups = []
         machine.on_key = self.on_key
         machine.on_error = self.errors.append
 
@@ -296,6 +297,279 @@ def record_input(typed: str) -> dict:
         'rows': [row.rstrip() for row in machine.text_lines()[3:9]],
     }
 
+# --- scenarios that steer the game with what is in its memory ---
+
+def player(machine: Apple2) -> tuple:
+    variables = machine.simple_variables()
+    return tuple(int(packed_to_number(variables[name])) for name in ['PX', 'PY', 'DX', 'DY', 'IN'])
+
+
+def dungeon_grid(machine: Apple2) -> list:
+    return grid(machine.arrays()['DN%'])
+
+
+def monsters_in_play(machine: Apple2) -> list:
+    arrays = machine.arrays()
+    alive, where = grid(arrays['MZ%']), grid(arrays['ML%'])
+    return [(number, where[number][0], where[number][1]) for number in range(1, 11) if alive[number][0] == 1]
+
+
+def turn_right(dx: int, dy: int) -> tuple:
+    return (0, dx) if dx != 0 else (-dy, 0)
+
+
+def turn_left(dx: int, dy: int) -> tuple:
+    return (0, -dx) if dx != 0 else (dy, 0)
+
+
+def plan_to(machine: Apple2, tiles: list, avoid_traps: bool = True):
+    """The first key of a shortest walk to a square whose tile is in `tiles`, or None."""
+    x, y, dx, dy, _level = player(machine)
+    dn = dungeon_grid(machine)
+    start = (x, y, dx, dy)
+    seen = {start: None}
+    queue = deque([start])
+    while queue:
+        node = queue.popleft()
+        px, py, ddx, ddy = node
+        if node != start or dn[px][py] in tiles:
+            if dn[px][py] in tiles and (px, py) != (x, y):
+                first = node
+                while seen[first][0] != start:
+                    first = seen[first][0]
+                return seen[first][1]
+        options = [(TURN_RIGHT, (px, py) + turn_right(ddx, ddy)), (TURN_LEFT, (px, py) + turn_left(ddx, ddy)),
+                   (TURN_AROUND, (px, py, -ddx, -ddy))]
+        ahead = (px + ddx, py + ddy)
+        if 0 <= ahead[0] <= 10 and 0 <= ahead[1] <= 10:
+            cell = dn[ahead[0]][ahead[1]]
+            if cell != 1 and cell < 10 and (cell != 2 or not avoid_traps or 2 in tiles):
+                options.append((FORWARD, ahead + (ddx, ddy)))
+        for key, nxt in options:
+            if nxt not in seen:
+                seen[nxt] = (node, key)
+                queue.append(nxt)
+    return None
+
+
+def adjacent_monster(machine: Apple2):
+    x, y, dx, dy, _level = player(machine)
+    for number, mx, my in monsters_in_play(machine):
+        if abs(mx - x) + abs(my - y) == 1:
+            return number, (mx - x, my - y)
+    return None
+
+
+def face(machine: Apple2, wanted: tuple) -> None:
+    _x, _y, dx, dy, _level = player(machine)
+    if (dx, dy) == wanted:
+        return
+    if (-dx, -dy) == wanted:
+        press(machine, TURN_AROUND)
+    elif turn_right(dx, dy) == wanted:
+        press(machine, TURN_RIGHT)
+    else:
+        press(machine, TURN_LEFT)
+
+
+def is_over(machine: Apple2) -> bool:
+    return 'HIT ESC KEY' in screen_text(machine)
+
+
+def fight_if_attacked(machine: Apple2, weapon: str) -> bool:
+    neighbour = adjacent_monster(machine)
+    if neighbour is None or is_over(machine):
+        return False
+    face(machine, neighbour[1])
+    press(machine, 'A', weapon)
+    if weapon == 'A':
+        press(machine, 'S')
+    return True
+
+
+def walk_to(machine: Apple2, tiles: list, weapon: str = 'R', limit: int = 160) -> bool:
+    for _ in range(limit):
+        screen = screen_text(machine)
+        if is_over(machine):
+            return False
+        if 'TO CONT' in screen:
+            press(machine, RETURN)
+            continue
+        x, y, _dx, _dy, _level = player(machine)
+        if dungeon_grid(machine)[x][y] in tiles:
+            return True
+        if fight_if_attacked(machine, weapon):
+            continue
+        key = plan_to(machine, tiles, avoid_traps=2 not in tiles)
+        if key is None:
+            return False
+        press(machine, key)
+    return False
+
+
+def poke_task(machine: Apple2, recorder: Recorder, value: int) -> None:
+    """Debugger-style: sets TASK in memory; the spec sets it before the key that follows."""
+    bits = abs(value).bit_length()
+    mantissa = abs(value) << (32 - bits)
+    first = ((mantissa >> 24) & 0x7F) | (0x80 if value < 0 else 0)
+    machine.set_simple_variable('TA', bytes([0x80 + bits, first, (mantissa >> 16) & 0xFF, (mantissa >> 8) & 0xFF, mantissa & 0xFF]))
+    recorder.setups.append({'beforeKey': len(recorder.steps), 'task': value})
+
+
+def enter_first_dungeon(machine: Apple2, world: dict) -> None:
+    walk, _dungeon = path_to(world, world['start'], 4)
+    press(machine, *walk, 'X')
+
+
+def finish(name: str, lucky: str, recorder: Recorder) -> dict:
+    return {'name': name, 'lucky': lucky, 'setups': recorder.setups, 'steps': recorder.finish()}
+
+
+def packed_integer(value: int) -> bytes:
+    if value == 0:
+        return bytes(5)
+    bits = abs(value).bit_length()
+    mantissa = abs(value) << (32 - bits)
+    first = ((mantissa >> 24) & 0x7F) | (0x80 if value < 0 else 0)
+    return bytes([0x80 + bits, first, (mantissa >> 16) & 0xFF, (mantissa >> 8) & 0xFF, mantissa & 0xFF])
+
+
+def poke_cell(machine: Apple2, recorder: Recorder, array: str, index: int, value: int) -> None:
+    """Debugger-style: one cell of C() or PW() set in memory. The spec repeats it before the next key."""
+    machine.set_real_array_cell(array, [index], packed_integer(value))
+    recorder.setups.append({'beforeKey': len(recorder.steps), 'array': array, 'index': index, 'value': value})
+
+
+def session_amulet_fighter() -> dict:
+    machine, recorder, world = started_session('10', '1', 'Y', 'F', 'MSFQ')
+    press(machine, 'P')
+    enter_first_dungeon(machine, world)
+    # A thief that finds nothing to steal loops forever at line 4620, so the player carries plenty.
+    poke_cell(machine, recorder, 'PW', 0, 200)
+    rng = random.Random(21)
+    for _ in range(150):
+        if is_over(machine):
+            press(machine, ESCAPE)
+            break
+        if 'TO CONT' in screen_text(machine):
+            press(machine, RETURN)
+        elif fight_if_attacked(machine, 'M'):
+            pass
+        else:
+            roll = rng.random()
+            if roll < 0.35:
+                press(machine, FORWARD)
+            elif roll < 0.45:
+                press(machine, rng.choice([TURN_RIGHT, TURN_LEFT]))
+            elif roll < 0.55:
+                press(machine, 'X')
+            else:
+                press(machine, 'A', 'M')
+    return finish('amulet-f-10', '10', recorder)
+
+
+def session_amulet_mage() -> dict:
+    machine, recorder, world = started_session('10', '1', 'Y', 'M', 'MSFQ')
+    enter_first_dungeon(machine, world)
+    poke_cell(machine, recorder, 'PW', 0, 200)
+    poke_cell(machine, recorder, 'PW', 1, 1)
+    poke_cell(machine, recorder, 'PW', 4, 1)
+    press(machine, 'A', 'R', 'A', 'B', 'A', 'M', '4', 'A', 'M', '4', 'A', 'M', '9', '1', 'X')
+    press(machine, 'X')
+    press(machine, 'A', 'M', '2', 'X')
+    for choice in '3341234':
+        if is_over(machine):
+            break
+        if 'TO CONT' in screen_text(machine):
+            press(machine, RETURN)
+        press(machine, 'A', 'M', choice)
+    if is_over(machine):
+        press(machine, ESCAPE)
+    return finish('amulet-m-10', '10', recorder)
+
+
+def session_traps_and_chests() -> dict:
+    machine, recorder, world = started_session('10', '1', 'Y', 'F', 'RFFFFFFFFFFFFFFQ')
+    enter_first_dungeon(machine, world)
+    for tiles in ([5], [5], [2], [7, 9], [7, 9], [8], [8], [8]):
+        if walk_to(machine, tiles) and tiles not in ([5], [2]):
+            press(machine, 'X')
+    if is_over(machine):
+        press(machine, ESCAPE)
+    return finish('traps-chests-10', '10', recorder)
+
+
+def session_fleeing_monsters() -> dict:
+    machine, recorder, world = started_session('10', '4', 'Y', 'F', 'RSFFFFFFFFQ')
+    enter_first_dungeon(machine, world)
+    poke_cell(machine, recorder, 'C', 0, 120)
+    for _ in range(160):
+        if is_over(machine):
+            press(machine, ESCAPE)
+            break
+        if 'TO CONT' in screen_text(machine):
+            press(machine, RETURN)
+        elif not fight_if_attacked(machine, 'R'):
+            press(machine, ' ')
+    return finish('fleeing-10', '10', recorder)
+
+
+def session_thieves_and_gremlins() -> dict:
+    machine, recorder, world = started_session('12', '1', 'Y', 'F', 'RFFFFFFFFFFFFFFQ')
+    enter_first_dungeon(machine, world)
+    poke_cell(machine, recorder, 'C', 0, 400)
+    for _ in range(6):
+        if not walk_to(machine, [7, 9]):
+            break
+        press(machine, 'X')
+    for _ in range(150):
+        if is_over(machine):
+            press(machine, ESCAPE)
+            break
+        if 'TO CONT' in screen_text(machine):
+            press(machine, RETURN)
+        elif not fight_if_attacked(machine, 'R'):
+            press(machine, ' ')
+    return finish('thieves-12', '12', recorder)
+
+
+def session_starvation() -> dict:
+    machine, recorder, world = started_session('3', '1', 'Y', 'F', 'FQ')
+    walk, _castle = path_to(world, world['start'], 5)
+    press(machine, *walk, 'X', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\r', 'Y', ' ')
+    for _ in range(40):
+        if is_over(machine):
+            press(machine, ESCAPE)
+            break
+        press(machine, ' ')
+    return finish('starvation-3', '3', recorder)
+
+
+def session_court() -> dict:
+    machine, recorder, world = started_session('3', '1', 'Y', 'F', 'FFFFQ')
+    walk, _castle = path_to(world, world['start'], 5)
+    press(machine, *walk, 'X', 'MERLIN\r', 'N', ' ')
+    press(machine, 'X', 'MERLIN\r', 'Y', ' ')
+    press(machine, 'X', ' ')
+    poke_task(machine, recorder, -3)
+    press(machine, 'X', ' ')
+    poke_task(machine, recorder, -3)
+    press(machine, 'X', ' ')
+    return finish('court-3', '3', recorder)
+
+
+def session_knighthood_top_level() -> dict:
+    machine, recorder, world = started_session('3', '10', 'Y', 'F', 'FFFFQ')
+    walk, _castle = path_to(world, world['start'], 5)
+    press(machine, *walk, 'X', 'ARTHUR\r', 'Y', ' ')
+    poke_task(machine, recorder, -10)
+    press(machine, 'X', ' ')
+    return finish('knighthood-top-3', '3', recorder)
+
+
+SCENARIOS = [session_amulet_fighter, session_amulet_mage, session_traps_and_chests, session_fleeing_monsters,
+             session_thieves_and_gremlins, session_starvation, session_court, session_knighthood_top_level]
+
 
 def main(stages: list) -> None:
     (OUT / 'sessions').mkdir(parents=True, exist_ok=True)
@@ -311,6 +585,12 @@ def main(stages: list) -> None:
             print('world', lucky, flush=True)
         (OUT / 'tables.json').write_text(json.dumps(tables, separators=(',', ':')) + '\n')
         (OUT / 'worlds.json').write_text(json.dumps(worlds, separators=(',', ':')) + '\n')
+
+    if 'scenarios' in stages:
+        for make in SCENARIOS:
+            session = make()
+            (OUT / 'sessions' / f"{session['name']}.json").write_text(json.dumps(session, separators=(',', ':')) + '\n')
+            print('session', session['name'], len(session['steps']), flush=True)
 
     if 'input' in stages:
         records = [record_input(typed) for typed in INPUT_LINES]

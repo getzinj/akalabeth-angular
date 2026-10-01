@@ -129,3 +129,12 @@ for _ in range(600):
         right = left[:6] + [rng.choice([0x00, 0x7F, 0x80, 0xFF])]
     compare_cases.append([hexes(left), hexes(right), rom.compare(left, right)])
 write('compare', compare_cases)
+
+power_cases = []
+for base in range(-12, 13):
+    for exponent in ['2', '3', '0', '1', '.5', '5']:
+        base_image = rom.fin(str(base))
+        exponent_image = rom.fin(exponent)
+        result = attempt(lambda: rom.binary('^', base_image, exponent_image))
+        power_cases.append([hexes(base_image), hexes(exponent_image), None if result is None else hexes(result)])
+write('power', power_cases)

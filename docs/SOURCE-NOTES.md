@@ -128,6 +128,27 @@ Key codes in the command loop: 141 Return = forward / North, 149 right arrow = t
   counted those reads as the program waiting, so a key could be latched, and its screen recorded, in the middle of
   drawing the shop. Those reads no longer count and the session traces were regenerated.
 
+## Rules found while porting play (phase 5b)
+
+- **The first dungeon is generated before the player is placed.** Line 1510 runs `GOSUB 500` and only then sets `PX=1:PY=1`,
+  so the monster-placement check at line 2040 uses whatever `PX` and `PY` held (0 and 0 on a first entry).
+- **A hit flips the quest.** Line 1667 runs on every hit, not only on a kill, so `TASK=-TASK` toggles each time the
+  monster Lord British asked for is hit: two hits undo the first.
+- **Arrows and the amulet's magic attack shoot through walls.** Lines 1672-1674 look at the next five squares by number only.
+- **Only mages use up the amulet.** The one-in-four "last charge" roll (line 1683) is skipped for fighters, who get a
+  random gift of the four instead.
+- **A monster that would step onto the player disappears from the map.** Line 4050 takes its number out of its old square
+  and line 4055 gives up without putting it back, so it is still alive but can no longer be seen or hit.
+- **A thief with nothing to steal hangs the program.** Line 4620 loops until it draws an item the player owns. The port
+  throws after 100,000 draws and restarts, as Ctrl-C would under `ONERR`.
+- **A Mimic is drawn as a chest.** Line 266 prints `CHEST!` for monster 8.
+- **Death leaves ESC latched.** Line 6050 never clears the keyboard strobe, so the restarted game's first `INPUT` finds ESC
+  waiting and, like the Monitor's `GETLN`, treats the next key as an escape function and drops it. The port reproduces
+  that; the escape functions themselves (cursor moves and clears) are not ported.
+- **Food costs 1 a move on the overworld and 0.1 in a dungeon** (line 1090), and goes negative before the player starves.
+- **Replaying the oracle.** Sessions carry `setups` for what the scripts changed in memory (`TASK`, one cell of `C()` or
+  `PW()`), applied before the key at `beforeKey`. Hi-res pages are recorded but not compared until phase 6.
+
 ## Game rules as listed (to confirm with the oracle)
 
 - **Stats** `C(0..5)` = hit points, strength, dexterity, stamina, wisdom, gold, each `INT(SQR(RND(1))*21+4)`.

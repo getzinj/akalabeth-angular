@@ -217,6 +217,34 @@ class Apple2:
             address += size
         return found
 
+    def array_cell_address(self, name: str, indexes: list) -> int:
+        """Where one cell of a named array lives, as arrays() names them; first subscript varies fastest."""
+        address = self.word(ARYTAB)
+        end = self.word(STREND)
+        while address < end:
+            first, second = self.memory.ram[address], self.memory.ram[address + 1]
+            size = self.word(address + 2)
+            dimensions = self.memory.ram[address + 4]
+            extents = [(self.memory.ram[address + 5 + 2 * index] << 8) | self.memory.ram[address + 6 + 2 * index]
+                       for index in range(dimensions)][::-1]
+            integer = (first & 0x80) != 0 and (second & 0x80) != 0
+            text = (first & 0x80) == 0 and (second & 0x80) != 0
+            found = chr(first & 0x7F) + (chr(second & 0x7F) if (second & 0x7F) else '')
+            found += '%' if integer else ('$' if text else '')
+            if found == name:
+                linear, stride = 0, 1
+                for index, extent in zip(indexes, extents):
+                    linear += index * stride
+                    stride *= extent
+                width = 2 if integer else (3 if text else 5)
+                return address + 5 + 2 * dimensions + linear * width
+            address += size
+        raise KeyError(name)
+
+    def set_real_array_cell(self, name: str, indexes: list, packed: bytes) -> None:
+        cell = self.array_cell_address(name, indexes)
+        self.memory.ram[cell:cell + 5] = packed
+
     def set_simple_variable(self, name: str, packed: bytes) -> None:
         """Overwrites an existing real variable in place, as a debugger would."""
         address = self.word(VARTAB)
