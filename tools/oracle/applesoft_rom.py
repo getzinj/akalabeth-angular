@@ -140,6 +140,23 @@ class Applesoft:
         self.call(self.labels[name], preload_fac_flags=True)
         return self.fac()
 
+    def integer(self, routine: str, image: list) -> int:
+        """AYINT (integer stores) or MKINT (subscripts): FAC to a signed 16-bit integer, left in FACMO and FACLO."""
+        self.set_fac(image)
+        self.call(self.labels[routine], preload_fac_flags=True)
+        value = (self.mpu.memory[FAC + 3] << 8) | self.mpu.memory[FAC + 4]
+        return value - 0x10000 if value >= 0x8000 else value
+
+    def compare(self, left: list, right: list) -> int:
+        """RELOPS' FCOMP: the left operand was stored rounded, the right is FAC as computed."""
+        pushed = self.round_fac(left)
+        for offset in range(5):
+            self.mpu.memory[SCRATCH + offset] = pushed[offset]
+        self.mpu.memory[SCRATCH + 1] = (pushed[1] & 0x7F) | (pushed[5] & 0x80)
+        self.set_fac(right)
+        self.call(self.labels['FCOMP'], a=SCRATCH & 0xFF, y=SCRATCH >> 8)
+        return self.mpu.a
+
     def seed(self) -> list:
         m = self.mpu.memory
         return [m[0xC9 + offset] for offset in range(5)]

@@ -145,6 +145,24 @@ export class TextScreen {
   }
 
 
+  /** GETLN's echo of what was typed: always normal, whatever INVERSE says. */
+  public echo(text: string): void {
+    const saved: number = this.inverseMask;
+
+    this.inverseMask = NORMAL_MASK;
+    this.print(text);
+    this.inverseMask = saved;
+  }
+
+
+  /** The screen code at the cursor, which GETLN's right arrow copies into the line. */
+  public get codeUnderCursor(): number {
+    const column: number = this.windowLeft + this.ch;
+
+    return ((column < TEXT_COLUMNS) && (this.cv < TEXT_ROWS)) ? this.cells[(this.cv * TEXT_COLUMNS) + column] : BLANK;
+  }
+
+
   public crdo(): void {
     this.outdo(0x0D);
     this.dirty = true;

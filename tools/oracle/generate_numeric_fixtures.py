@@ -105,3 +105,27 @@ for seed in seeds:
     repeat = rom.function('RND', rom.fin('0'))
     rnd_cases.append([hexes(seed), hexes(first), sequence, hexes(repeat)])
 write('rnd', rnd_cases)
+
+integer_cases = []
+near_integers = [rom.fin(text) for text in ['0', '1', '-1', '.5', '-.5', '1.5', '-1.5', '9.5', '10', '32767', '-32767',
+                                            '-32768', '32768', '.99999999', '-.99999999', '2.9999999', '-2.9999999']]
+for routine in ['AYINT', 'MKINT']:
+    for argument in near_integers + [random_image(0x78, 0x92) for _ in range(300)]:
+        try:
+            integer_cases.append([routine, hexes(argument), rom.integer(routine, argument)])
+        except ApplesoftError:
+            integer_cases.append([routine, hexes(argument), None])
+write('integer', integer_cases)
+
+compare_cases = []
+for _ in range(600):
+    left, right = random_image(0x70, 0x90), random_image(0x70, 0x90)
+    kind = rng.random()
+    if kind < 0.35:
+        right = left[:6] + [right[6]]
+    elif kind < 0.5:
+        right = left[:4] + [(left[4] + rng.choice([-1, 1])) & 0xFF] + left[5:6] + [right[6]]
+    elif kind < 0.65:
+        right = left[:6] + [rng.choice([0x00, 0x7F, 0x80, 0xFF])]
+    compare_cases.append([hexes(left), hexes(right), rom.compare(left, right)])
+write('compare', compare_cases)

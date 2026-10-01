@@ -1,11 +1,13 @@
 import binaryCases from './fixtures/binary.json';
+import compareCases from './fixtures/compare.json';
 import finCases from './fixtures/fin.json';
 import foutCases from './fixtures/fout.json';
 import functionCases from './fixtures/function.json';
+import integerCases from './fixtures/integer.json';
 import rndCases from './fixtures/rnd.json';
 import roundCases from './fixtures/round.json';
 import type { FacImage } from './math-package';
-import { MathPackage } from './math-package';
+import { IllegalQuantityError, MathPackage } from './math-package';
 
 // Every expected value here was recorded from the real Applesoft ROM; see apps/Akalabeth/tools/oracle.
 
@@ -100,6 +102,49 @@ describe('MathPackage', (): void => {
       functions[name](math);
 
       expect(hex(math.fac)).toBe(expected);
+    });
+  });
+
+  describe('integer conversion', (): void => {
+    function converted(routine: string, argument: string): number | null {
+      const math: MathPackage = new MathPackage();
+      let result: number | null = null;
+
+      math.fac = image(argument);
+      try {
+        if (routine === 'AYINT') {
+          math.ayint();
+        } else {
+          math.mkint();
+        }
+        const packed: number = (math.fac[3] << 8) | math.fac[4];
+
+        result = (packed >= 0x8000) ? packed - 0x10000 : packed;
+      } catch (error) {
+        if (!(error instanceof IllegalQuantityError)) {
+          throw error;
+        }
+      }
+
+      return result;
+    }
+
+    it.each(integerCases as [ string, string, number | null ][])('%s of %s', (routine: string, argument: string, expected: number | null): void => {
+      expect(converted(routine, argument)).toBe(expected);
+    });
+  });
+
+  describe('FCOMP', (): void => {
+    const POINTER: number = 0x0900;
+
+    it.each(compareCases as [ string, string, number ][])('compares %s with %s', (left: string, right: string, expected: number): void => {
+      const math: MathPackage = new MathPackage();
+
+      math.fac = image(left);
+      math.movmf(POINTER);
+      math.fac = image(right);
+
+      expect(math.fcomp(POINTER)).toBe(expected);
     });
   });
 

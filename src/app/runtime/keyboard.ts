@@ -83,6 +83,12 @@ export class Keyboard {
   }
 
 
+  /** Whether the program is suspended waiting for a key that has not come. */
+  public get isWaiting(): boolean {
+    return this.waiter != null;
+  }
+
+
   /** Resolves once a key is latched, without reading it; the game's PEEK loop at line 1001. */
   public async waitForKey(): Promise<number> {
     if (!this.keyWaiting) {

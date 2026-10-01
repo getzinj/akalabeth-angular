@@ -78,6 +78,8 @@ function constantTable(): { readonly bytes: number[]; readonly at: Record<string
       0x82, 0x38, 0xAA, 0x3B, 0x20);
   put('SQRHLF', 0x80, 0x35, 0x04, 0xF3, 0x34);
   put('SQRTWO', 0x81, 0x35, 0x04, 0xF3, 0x34);
+  // -32768 as the ROM means it; the fifth byte is the $20 of the next instruction, which is its bug.
+  put('NEG32768', 0x90, 0x80, 0x00, 0x00, 0x20);
   put('NEGHLF', 0x80, 0x80, 0x00, 0x00, 0x00);
   put('LOG2', 0x80, 0x31, 0x72, 0x17, 0xF8);
   put('TENZC', 0x84, 0x20, 0x00, 0x00, 0x00);
@@ -1105,6 +1107,28 @@ export class MathPackage {
       this.m[BITS] = this.y;
     }
   }
+
+  /** AYINT: FAC to a signed 16-bit integer in FACMO and FACLO, rounding down. */
+  public ayint(): void {
+    this.lda(this.m[FACEXP]);
+    this.compare(this.a, 0x90);
+    if (this.c) {
+      if (this.fcomp(K['NEG32768']) !== 0) {
+        throw new IllegalQuantityError();
+      }
+    }
+    this.qint();
+  }
+
+
+  /** MKINT: as AYINT, for subscripts, and negative values are an error. */
+  public mkint(): void {
+    if ((this.m[FACSGN] & 0x80) !== 0) {
+      throw new IllegalQuantityError();
+    }
+    this.ayint();
+  }
+
 
   public int(): void {
     this.lda(this.m[FACEXP]);

@@ -4,7 +4,7 @@ import { UnemulatedAddressError } from './applesoft-errors';
 import { getadr } from './applesoft-numbers';
 import { glyphFor } from './builtin-font';
 import { HiresScreen } from './hires-screen';
-import { Keyboard } from './keyboard';
+import { Keyboard, KEY_LEFT_ARROW, KEY_RETURN } from './keyboard';
 import { TextScreen } from './text-screen';
 
 
@@ -16,6 +16,11 @@ const KEYBOARD_DATA: number = 0xC000;
 const KEYBOARD_STROBE: number = 0xC010;
 const CLREOL: number = 0xFC9C;
 const HCLR: number = 0xF3F2;
+
+const KEY_PICK: number = 0x95;
+const KEY_CANCEL_LINE: number = 0x98;
+const LINE_MARGIN: number = 0xF8;
+const MAXIMUM_LINE: number = 239;
 
 
 export interface IRenderableScreen {
@@ -110,6 +115,67 @@ export class AppleMachine implements IRenderableScreen {
     } else {
       throw new UnemulatedAddressError('CALL', address);
     }
+  }
+
+
+  /** RDKEY: the next key, strobe cleared, bit 7 set. */
+  public async readKey(): Promise<number> {
+    const code: number = await this.keyboard.waitForKey();
+
+    this.keyboard.clearStrobe();
+
+    return code;
+  }
+
+
+  /**
+   * INPUT's line editing, which is the Monitor's GETLN: typed characters are echoed, the left
+   * arrow backs up (and past the start abandons the line), Ctrl-X cancels with a backslash and the
+   * right arrow copies the character under the cursor. Return clears to the end of the line.
+   */
+  public async readLine(): Promise<string> {
+    const typed: number[] = [];
+    let index: number = 0;
+    let finished: boolean = false;
+
+    while (!finished) {
+      let code: number = await this.readKey();
+
+      if (code === KEY_PICK) {
+        code = this.text.codeUnderCursor;
+      }
+      if (code >= 0xE0) {
+        code = code & 0xDF;
+      }
+      typed[index] = code;
+
+      if (code === KEY_RETURN) {
+        this.text.clearToEndOfLine();
+        this.text.crdo();
+        finished = true;
+      } else {
+        this.text.echo(String.fromCharCode(code & 0x7F));
+
+        if (code === KEY_LEFT_ARROW) {
+          if (index === 0) {
+            this.text.crdo();
+          } else {
+            index = index - 1;
+          }
+        } else if (code === KEY_CANCEL_LINE) {
+          this.text.print('\\');
+          this.text.crdo();
+          index = 0;
+        } else {
+          if (index >= LINE_MARGIN) {
+            this.text.print(String.fromCharCode(0x07));
+          }
+          index = index + 1;
+        }
+      }
+    }
+
+    return typed.slice(0, Math.min(index, MAXIMUM_LINE)).map((value: number): string => String.fromCharCode(value & 0x7F)).join('');
   }
 
 
