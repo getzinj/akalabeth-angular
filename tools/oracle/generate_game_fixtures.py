@@ -257,7 +257,7 @@ def session_overworld() -> dict:
     press(machine, *keys)
     press(machine, 'X', 'AVATAR\r', 'Y', ' ')
     press(machine, 'X', ' ')
-    press(machine, NORTH, NORTH, EAST, EAST, SOUTH, SOUTH, WEST, WEST)
+    press(machine, NORTH, EAST, SOUTH, WEST)
     return {'name': 'overworld', 'lucky': '1', 'steps': recorder.finish()}
 
 
