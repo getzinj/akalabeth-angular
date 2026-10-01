@@ -97,6 +97,10 @@ Key codes in the command loop: 141 Return = forward / North, 149 right arrow = t
   The original disk must have loaded it above the page. The oracle moves the program start to `$4001`
   (`POKE 103,1: POKE 104,64: POKE 16384,0: NEW`), which is the usual way. Line 5's `HIMEM: 49151` then leaves room for
   variables.
+- **Line 520 confirmed.** On the real ROM, `DNG(Y,X)=1` fills a separate float array `DN()` (36 cells per level),
+  so dungeons get the vertical walls `DNG%(X,Y)=1` writes but none of the horizontal ones.
+- **No `HPLOT` range errors** happened in any recorded session, so `ONERR GOTO 4` restarts came only from death and
+  resurrection.
 - **Observed quirk.** The stats screen (`S`, line 1700) ends with `TEXT`, which resets the text window to full screen.
   Back in the overworld the window is no longer rows 20–23, so later messages scroll up through rows the graphics
   cover. The traces capture this.

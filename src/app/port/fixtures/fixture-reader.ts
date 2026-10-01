@@ -89,8 +89,36 @@ export function replay(session: ISessionFixture): IMachineState[] {
 
 
 export async function inflateHires(encoded: string): Promise<Uint8Array> {
-  const compressed: Uint8Array = Uint8Array.from(atob(encoded), (character: string): number => character.charCodeAt(0));
-  const stream: ReadableStream<Uint8Array> = new Blob([ compressed ]).stream().pipeThrough(new DecompressionStream('deflate'));
+  const binary: string = atob(encoded);
+  const compressed: Uint8Array<ArrayBuffer> = new Uint8Array(new ArrayBuffer(binary.length));
+  const inflater: DecompressionStream = new DecompressionStream('deflate');
+  const writer: WritableStreamDefaultWriter<BufferSource> = inflater.writable.getWriter();
 
-  return new Uint8Array(await new Response(stream).arrayBuffer());
+  for (let index: number = 0; index < binary.length; index++) {
+    compressed[index] = binary.charCodeAt(index);
+  }
+  const [ , chunks ] = await Promise.all([ writer.write(compressed).then((): Promise<void> => writer.close()), readAll(inflater.readable) ]);
+  const page: Uint8Array = new Uint8Array(chunks.reduce((total: number, chunk: Uint8Array): number => total + chunk.length, 0));
+  let offset: number = 0;
+
+  for (const chunk of chunks) {
+    page.set(chunk, offset);
+    offset = offset + chunk.length;
+  }
+
+  return page;
+}
+
+
+async function readAll(stream: ReadableStream<Uint8Array>): Promise<Uint8Array[]> {
+  const reader: ReadableStreamDefaultReader<Uint8Array> = stream.getReader();
+  const chunks: Uint8Array[] = [];
+  let result: ReadableStreamReadResult<Uint8Array> = await reader.read();
+
+  while (!result.done) {
+    chunks.push(result.value);
+    result = await reader.read();
+  }
+
+  return chunks;
 }
