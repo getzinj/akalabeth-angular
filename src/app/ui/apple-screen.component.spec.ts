@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import type { ComponentFixture } from '@angular/core/testing';
 
+import { AppleMachine } from '../runtime/apple-machine';
 import { AppleScreenComponent } from './apple-screen.component';
 
 
@@ -9,6 +10,8 @@ describe('AppleScreenComponent', (): void => {
 
   beforeEach(async (): Promise<void> => {
     const fixture: ComponentFixture<AppleScreenComponent> = TestBed.createComponent(AppleScreenComponent);
+
+    fixture.componentRef.setInput('screen', new AppleMachine());
 
     await fixture.whenStable();
     canvas = (fixture.nativeElement as HTMLElement).querySelector('canvas') as HTMLCanvasElement;

@@ -39,18 +39,29 @@ listing.
 | `DIM A(10)` has 11 slots | line 20 | 0..10 inclusive. Index 0 is used (`PER%(0,*)`, `XX%(0)`) |
 | Mixed-mode `HGR` | line 100, 200 | 160 graphics rows (hence `159`, `158`), bottom 4 rows are text |
 
-## Apple II calls to verify in Phase 2
+## Apple II calls (verified in phase 2)
 
-These are from memory of the Apple II memory map and **must be checked against a reference before use**:
+Checked against the reconstructed ROM source in
+[`cmosher01/Apple-II-Source`](https://github.com/cmosher01/Apple-II-Source) (`src/system/applesoft/applesoft.m4`,
+`src/system/monitor/common/display1.m4`, `display2.m4`), GPL-3.0. The port reimplements the behaviour; it copies no
+ROM code.
 
-| Call | Used for | Believed meaning |
+| Call | Used for | Behaviour |
 |---|---|---|
-| `CALL -868` | after every `PRINT` of a name/status | clear to end of line (`$FC9C`) |
-| `CALL 62450` | lines 7001, 60082 | clear HGR screen to black (`$F3F2`) |
+| `CALL -868` | after every `PRINT` of a name/status | `CLREOL` ($FC9C): blanks from `CH` to the right edge of the window |
+| `CALL 62450` | lines 7001, 60082 | `HCLR` ($F3F2): fills the hi-res page with 0 |
 | `PEEK(-16384)` / `POKE -16368,0` | command loop, line 6050 | keyboard data / strobe clear (`$C000` / `$C010`) |
-| `POKE 32–35` | lines 69, 1091, 1096, 60080 | text window left/width/top/bottom |
-| `POKE 34,20` + `POKE 33,29` | line 69 | window starts at row 20, 29 columns wide. `POKE 33,40` widens it for the `FOOD=`/`H.P.=`/`GOLD=` readout at `HTAB 30` |
-| `HIMEM: 49151`, `PR# 0`, `IN# 0`, `FRE(0)` | lines 4–5, 1002 | housekeeping; `FRE(0)` forces garbage collection |
+| `POKE 32–35` | lines 69, 1091, 1096, 60080 | `WNDLFT`, `WNDWDTH`, `WNDTOP`, `WNDBTM`; the Monitor does not validate them |
+| `HGR` | lines 100, 200 | page 1, mixed mode, then falls into `HCLR`; it does **not** touch the text window |
+| `TEXT` | lines 10, 1700, 7000, 7900, 60000, 60080 | `SETTXT`: text mode, full-screen window, cursor to row 24 |
+| `HPLOT X,Y` | everywhere | X through `GETADR` (so -0.5 is 0, -1 is 65535) and below 280; Y through `GETBYT` (negative, even -0.5, is an error) and below 192; both truncate. Any failure is `?ILLEGAL QUANTITY`, which `ONERR GOTO 4` turns into a restart |
+| `HPLOT TO` | everywhere | `HGLIN`: a four-connected line of \|dx\| + \|dy\| + 1 dots, stepping X while the error term is ≥ 0, else Y |
+| `HCOLOR=3` | lines 68, 200 | pattern `$7F`; plotting copies bit 7 too, so every byte a white line touches has its palette bit cleared |
+| `HTAB n` | status readout | `CH = n-1`, emitting a carriage return per 40 over; not limited to the window width |
+| `,` in `PRINT` | line 60060 | next multiple of 16 if `CH < 24`, else a new line (the ROM's documented bug) |
+| `TAB(n)` | line 60080 | prints `n-1-CH` spaces, none if already past |
+| `INVERSE` / `NORMAL` | monster names, `CHEST!` | `INVFLG` `$3F` / `$FF`: inverse characters are stored as `$00-$3F` |
+| `HIMEM: 49151`, `PR# 0`, `IN# 0`, `FRE(0)` | lines 4–5, 1002 | housekeeping; not emulated |
 
 Key codes in the command loop: 141 Return = forward / North, 149 right arrow = turn right / East,
 136 left arrow = turn left / West, 175 `/` = turn around / South, 216 `X` = enter / climb / stairs,
