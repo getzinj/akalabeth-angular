@@ -19,15 +19,33 @@ Decisions:
 - **Logic.** Idiomatic TypeScript hand-port, verified against a dev-only Applesoft interpreter used as a
   test oracle.
 
+## Lessons from `getzinj/wizardry-angular`
+
+A standalone, non-Nx Angular 22 repo (Vitest, zoneless, GitHub Pages at `wizardry.stonequest.org`).
+
+- **Layers to copy:** `runtime/` (game-agnostic Apple II emulation), `port/` (original procedures, each citing its
+  origin by file and line), `ui/` (thin Angular shell). No `data/` layer: Akalabeth has no disk format.
+- **Code to copy and adapt** (same author): `runtime/hires-screen.ts` (real 8 KB HGR memory, `hiresRowOffset`,
+  `toAscii()` for specs), `apple-hires.constants.ts`, `apple-palette.ts` (NTSC artifact colours, four monitor
+  palettes), `text-screen.ts`, `keyboard.ts`, `ui/apple-screen.component.ts`, `builtin-font.ts`.
+- **New work here:** the Applesoft ROM `HPLOT` routine (Wizardry ports its own 6502 `DRAWLINE`), the text window
+  (`POKE 32–35`), `INVERSE`, `HTAB`/`VTAB`, the CRT presenter, the oracle, pixel golden specs and Playwright. Wizardry
+  has integer-only scaling and none of those.
+- **Same as Wizardry:** one async game loop suspended on key input, `no-floating-promises`, synthetic fixtures so CI
+  needs no original data, screens asserted as ASCII.
+- **Deploy** as a static site on GitHub Pages with a CNAME after extraction, not Vercel.
+- **Legal:** Wizardry vendors no original data; Akalabeth deliberately does (decision in `SOURCE-NOTES.md` §Licence).
+
 ## Architecture (`apps/Akalabeth/src/app/`; no Firebase, auth or `api/`)
 
-- `apple2/`: `hgr-framebuffer`, `hgr-line-rasterizer` (ROM HPLOT algorithm, clipping, truncation),
-  `text-screen` (40×24, window, cursor, inverse), `keyboard-latch`, `charset`.
-- `applesoft/`: `AppleRnd` (reseed on negative argument, 5-byte float rounding) and `DIM` helpers.
-- `game/`: stateless rule services in the repo's style. World and dungeon generation, perspective tables,
-  character creation, shop, movement, combat, monster AI, Lord British quests, death and win.
+- `runtime/`: `hgr-framebuffer`, `hgr-line-rasterizer` (ROM HPLOT algorithm, clipping, truncation),
+  `text-screen` (40×24, window, cursor, inverse), `keyboard-latch`, `charset`, and `apple-rnd` (reseed on negative
+  argument, 5-byte float rounding).
+- `port/`: stateless rule services in the repo's style, each citing its BASIC line range. World and dungeon
+  generation, perspective tables, character creation, shop, movement, combat, monster AI, Lord British quests,
+  death and win.
 - `renderers/`: dungeon wireframe (lines 200–490), monster vector art (300–400, 3087), overworld (100–190).
-- `display/`: canvas component and CRT presenter.
+- `ui/`: canvas component and CRT presenter.
 - One async game loop awaiting keys, behind an `IApple2Screen` seam like Stonequest's `IGamePresenter`.
 - `apps/Akalabeth/oracle/`: dev-only interpreter, excluded from the production build. It drives the same
   `apple2/` layer so framebuffers compare directly.
@@ -37,16 +55,16 @@ Decisions:
 
 | Phase | Description | Status |
 |---|---|---|
-| 0 | Source cross-check, `SOURCE-NOTES.md`, this plan, PLAN.md row; licence and name gate | 🟡 Notes and plan written; line-by-line diff of the two copies and the licence decision still open |
+| 0 | Source cross-check, `SOURCE-NOTES.md`, this plan, PLAN.md row; licence decision; vendor originals with NOTICE | 🟡 Done except the line-by-line diff of the two listing copies, which moves to phase 3 |
 | 1 | Scaffold `apps/Akalabeth` (via `nx-generate`, mirroring `c768313`): 500 kB budget, e2e port 4202, `nx.json` ESLint include, CI e2e job. No `vercel.json` change | ⬜ |
-| 2 | Apple II hardware layer with golden-bitmap specs (lines, clipping, text window) | ⬜ |
+| 2 | Apple II hardware layer: adapt Wizardry's `hires-screen`, palette, text screen and keyboard; add ROM `HPLOT`, text window and `INVERSE`; golden-bitmap specs | ⬜ |
 | 3 | `AppleRnd` and truncation helpers; golden sequences generated once offline from an independent emulator and committed as fixtures. Clean listing from the line-by-line diff | ⬜ |
 | 4 | Oracle interpreter, validated against the phase-3 fixtures | ⬜ |
 | 5 | Game rules, with differential specs against the oracle (dungeon grids for many seeds, perspective tables, scripted key sequences compared after every key) | ⬜ |
 | 6 | Renderers, pixel-diffed against the oracle (every wall, door, ladder, chest; all 10 monsters at every depth) | ⬜ |
 | 7 | Presentation: scaling canvas, CRT presenter (scanlines, bloom, optional NTSC colour and curvature, WebGL2 with Canvas2D fallback), optional authentic draw speed, keyboard and touch input, screen-reader text mirror | ⬜ |
 | 8 | Playwright pixel e2e (pattern: `apps/Stonequest/e2e/wizardry-maze-rendering`), budget, a11y, `npm run find-cycles` | ⬜ |
-| 9 | Deploy as its own Vercel project (after the name and licence decision) | ⬜ |
+| 9 | Deploy: static build to GitHub Pages as in Wizardry (workflow plus CNAME); no Vercel project | ⬜ |
 | 10 | Extract to its own repo | ⬜ |
 
 Out of scope unless asked: save/load, new classes or monsters, balance changes (the original has no save).
@@ -62,9 +80,9 @@ Out of scope unless asked: save/load, new classes or monsters, balance changes (
 
 ## Open items
 
-1. **Licence and name.** See `SOURCE-NOTES.md` §Licence. Blocks phase 9.
+1. **Licence and name.** Decided: keep the name, publish, vendor originals with a NOTICE, comply with any takedown.
+   Risk accepted, not cleared. See `SOURCE-NOTES.md` §Licence.
 2. **"Simulating rastering"** is read as CRT scanline and phosphor simulation plus an optional authentic draw
    speed. Confirm.
 3. **Apple ROM call semantics** in `SOURCE-NOTES.md` are from memory and are verified in phase 2.
-4. **Reference repos.** `getzinj/wizardry-angular` and `getzinj/moria-angular` were not readable when this
-   was written.
+4. **Reference repos.** `wizardry-angular` has been read (above). `moria-angular`'s `docs/port-plan.md` has not.

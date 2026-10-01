@@ -1,9 +1,9 @@
 # Akalabeth source notes (Phase 0)
 
 Reference for the port in [`docs/plans/2026-10-akalabeth-port.md`](../plans/2026-10-akalabeth-port.md).
-The original listing is **not vendored** in this repo: it carries no licence (see §Licence). Fetch it
-for local work from `https://raw.githubusercontent.com/videogamepreservation/akalabeth/master/AKLABETH.TXT`
-(676 lines, 36,141 bytes, Applesoft `LIST` output).
+The original files are vendored, unmodified, in [`original/`](original/NOTICE.md): `AKLABETH.TXT` (676
+lines, 36,141 bytes, Applesoft `LIST` output), `README.1ST`, `RPG.TXT`, `udic.txt` and 21 screenshots
+(560×385 GIFs: startup, overworld, town, Lord British, chest, trap door and the ten monsters). See §Licence.
 
 ## Provenance and cross-check
 
@@ -74,6 +74,10 @@ Key codes in the command loop: 141 Return = forward / North, 149 right arrow = t
   which is not the same as licensing it.
 - The C128 port is CC0, but it is derived work, so that does not clear the original.
 - Not verified: who holds rights to the name "Akalabeth", the GIFs and `RPG.TXT`.
-- **Gate:** keep the app unlisted, vendor neither the listing nor the GIFs, and decide the name before Phase 9 (deploy).
-  Stonequest's precedent is renaming.
-- Fonts: the Apple II character ROM is Apple-copyrighted; use a freely licensed Apple II-style font.
+- **Decision (owner, 2026-10-01):** keep the name "Akalabeth", publish, and vendor the original files with a
+  [NOTICE](original/NOTICE.md). If a rights holder asks, the app and the files come down promptly. The risk is
+  accepted knowingly; it is not cleared.
+- This differs from `getzinj/wizardry-angular`, which vendors no original data (the player supplies their own
+  disk). Stonequest itself renamed.
+- Fonts: the Apple II character ROM is Apple-copyrighted and is not part of the original project; use a freely
+  licensed Apple II-style font.
