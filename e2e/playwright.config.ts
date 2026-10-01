@@ -8,11 +8,10 @@ import { defineConfig, devices } from '@playwright/test';
 // normal managed-browser resolution.
 const sandboxChromiumPath: string = '/opt/pw-browsers/chromium';
 
-// CI gives each run its own port. The self-hosted runners are several runner registrations on
-// one Windows host, so a hard-coded 4200 belongs to every e2e job on that machine at once, and a
-// dev server leaked by an earlier job goes on holding it - which is how runs #520 and #521 both
-// died on "http://localhost:4200 is already used" with no other e2e job running at the time.
-const port: number = Number(process.env['E2E_PORT'] ?? 4202);
+// CI hands the e2e job one E2E_PORT and runs every affected app's e2e at once, so Akalabeth takes
+// the port after it and leaves E2E_PORT itself to Stonequest.
+const ciPort: string | undefined = process.env['E2E_PORT'];
+const port: number = ciPort == null ? 4202 : Number(ciPort) + 1;
 const baseURL: string = `http://localhost:${ port }`;
 
 
