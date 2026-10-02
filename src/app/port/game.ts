@@ -1,6 +1,7 @@
 import type { AppleMachine } from '../runtime/apple-machine';
 import { ApplesoftRandom } from '../runtime/applesoft/applesoft-random';
 import { BasicNumber } from '../runtime/applesoft/basic-number';
+import { KEY_DOWN_ARROW, KEY_UP_ARROW } from '../runtime/keyboard';
 import { restartsTheGame } from './basic-errors';
 import { CharacterCreation } from './character-creation';
 import { Combat } from './combat';
@@ -32,6 +33,20 @@ const KEY_ESCAPE: number = 155;
 const KEY_SPACE: number = 160;
 const KEY_S: number = 211;
 const KEY_P: number = 208;
+
+
+/** The up and down arrows, which the original lacked, do what Return and / do. */
+function commandKeyOf(code: number): number {
+  let key: number = code;
+
+  if (code === KEY_UP_ARROW) {
+    key = KEY_RETURN;
+  } else if (code === KEY_DOWN_ARROW) {
+    key = KEY_SLASH;
+  }
+
+  return key;
+}
 
 const TRAP: number = 2;
 const CHEST: number = 5;
@@ -117,7 +132,7 @@ export class Game {
     text.vtab(24);
     text.print('COMMAND? ');
     machine.call(-868);
-    const key: number = await machine.keyboard.waitForKey();
+    const key: number = commandKeyOf(await machine.keyboard.waitForKey());
 
     machine.poke(-16368, 0);
 

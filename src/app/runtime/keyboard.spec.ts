@@ -1,4 +1,4 @@
-import { KEY_ESCAPE, KEY_LEFT_ARROW, KEY_RETURN, KEY_RIGHT_ARROW, Keyboard, appleKeyCodeOf } from './keyboard';
+import { KEY_DOWN_ARROW, KEY_ESCAPE, KEY_LEFT_ARROW, KEY_RETURN, KEY_RIGHT_ARROW, KEY_UP_ARROW, Keyboard, appleKeyCodeOf } from './keyboard';
 
 
 describe('appleKeyCodeOf', (): void => {
@@ -14,6 +14,14 @@ describe('appleKeyCodeOf', (): void => {
     expect(appleKeyCodeOf('ArrowRight')).toBe(KEY_RIGHT_ARROW);
   });
 
+  it('maps the up arrow to the IIe\'s code', (): void => {
+    expect(appleKeyCodeOf('ArrowUp')).toBe(KEY_UP_ARROW);
+  });
+
+  it('maps the down arrow to the IIe\'s code', (): void => {
+    expect(appleKeyCodeOf('ArrowDown')).toBe(KEY_DOWN_ARROW);
+  });
+
   it('maps Escape to 155', (): void => {
     expect(appleKeyCodeOf('Escape')).toBe(KEY_ESCAPE);
   });
@@ -27,7 +35,7 @@ describe('appleKeyCodeOf', (): void => {
   });
 
   it('ignores keys the II+ did not have', (): void => {
-    expect(appleKeyCodeOf('ArrowUp')).toBeNull();
+    expect(appleKeyCodeOf('F1')).toBeNull();
   });
 });
 

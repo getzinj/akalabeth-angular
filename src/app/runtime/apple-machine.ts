@@ -6,7 +6,7 @@ import { UnemulatedAddressError } from './applesoft-errors';
 import { getadr } from './applesoft-numbers';
 import { glyphFor } from './builtin-font';
 import { HiresScreen } from './hires-screen';
-import { Keyboard, KEY_LEFT_ARROW, KEY_RETURN } from './keyboard';
+import { Keyboard, KEY_DOWN_ARROW, KEY_LEFT_ARROW, KEY_RETURN, KEY_UP_ARROW } from './keyboard';
 import { TextScreen } from './text-screen';
 
 
@@ -143,8 +143,11 @@ export class AppleMachine implements IRenderableScreen {
   private async readTypedCharacter(): Promise<number> {
     let code: number = await this.readKey();
 
-    while (code === KEY_ESCAPE) {
-      await this.readKey();
+    while ((code === KEY_ESCAPE) || (code === KEY_UP_ARROW) || (code === KEY_DOWN_ARROW)) {
+      if (code === KEY_ESCAPE) {
+        await this.readKey();
+      }
+
       code = await this.readKey();
     }
 
