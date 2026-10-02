@@ -198,3 +198,38 @@ describe('TextScreen', (): void => {
     });
   });
 });
+
+
+describe('TextScreen.load', (): void => {
+  it('shows the characters it was given', (): void => {
+    const screen: TextScreen = new TextScreen();
+
+    screen.load([ 'HELLO' ], []);
+
+    expect(screen.line(0).trimEnd()).toBe('HELLO');
+  });
+
+  it('marks the cells its mask calls inverse', (): void => {
+    const screen: TextScreen = new TextScreen();
+
+    screen.load([ 'AB' ], [ '10' ]);
+
+    expect([ screen.isInverse(0, 0), screen.isInverse(1, 0) ]).toEqual([ true, false ]);
+  });
+
+  it('shows an inverse letter as the same letter', (): void => {
+    const screen: TextScreen = new TextScreen();
+
+    screen.load([ 'Q' ], [ '1' ]);
+
+    expect(screen.character(0, 0)).toBe('Q');
+  });
+
+  it('blanks what it was not given', (): void => {
+    const screen: TextScreen = new TextScreen();
+
+    screen.load([ 'X' ], []);
+
+    expect(screen.line(5)).toBe(' '.repeat(40));
+  });
+});

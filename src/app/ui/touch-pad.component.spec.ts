@@ -51,6 +51,10 @@ describe('TouchPadComponent', (): void => {
     expect(field.value).toBe('');
   });
 
+  it('marks its text field as the game\'s own input', (): void => {
+    expect((fixture.nativeElement as HTMLElement).querySelector('input')?.hasAttribute('data-game-input')).toBe(true);
+  });
+
   it('labels every button for screen readers', (): void => {
     const buttons: HTMLButtonElement[] = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('button'));
 
