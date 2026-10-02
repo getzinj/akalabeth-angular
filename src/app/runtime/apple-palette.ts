@@ -5,13 +5,9 @@
 // sits in, two neighbouring pixels read as white, and bit 7 of the byte shifts that pair to blue
 // and orange. Wizardry never sets bit 7, so in practice its line art is violet, green and white.
 //
-// The violet, green and white values are the ones Stonequest's Wizardry-style renderer already
-// uses, so both apps draw the same maze in the same colours. See the line colours in
-// apps/Stonequest/src/app/pages/game/kyrn/maze/view/wizardry-renderer/line-drawerer.service.ts
-// and the alien-level pair in that folder's AlienLineRenderer.ts. Blue and orange have no
-// Stonequest counterpart (nothing there sets the palette bit) and come from the usual references
-// for Apple II artifact colour. If these move to a shared library later, this file is the unit
-// to move: it has no Angular and no game dependencies.
+// The violet, green and white values match getzinj/wizardry-angular, so both ports draw in the same
+// colours. Blue and orange are not used there and come from the usual references for Apple II
+// artifact colour. This file has no Angular and no game dependencies.
 
 export interface IRgb {
   readonly r: number;

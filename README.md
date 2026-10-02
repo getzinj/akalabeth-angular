@@ -5,9 +5,9 @@ drawn on an emulated Apple II screen: 280x192 hi-res graphics with the text
 window, scaled to the space available.
 
 The game's rules are hand-ported from the original Applesoft BASIC listing, which
-is linked, not copied; see the [source notes](../../docs/akalabeth/SOURCE-NOTES.md).
+is linked, not copied; see the [source notes](docs/SOURCE-NOTES.md).
 The plan and progress are in
-[`docs/plans/2026-10-akalabeth-port.md`](../../docs/plans/2026-10-akalabeth-port.md).
+[`docs/port-plan.md`](docs/port-plan.md).
 
 ## Playing
 
@@ -32,19 +32,31 @@ appears, with a keyboard button for names and numbers. The text on screen is als
 ## Running
 
 ```sh
-npx nx serve Akalabeth        # http://localhost:4202
-npx nx test Akalabeth
-npx nx lint Akalabeth
-npx nx e2e Akalabeth
+npm ci
+npm start           # http://localhost:4202
+npm test
+npm run lint
+npm run e2e         # Playwright: starts the dev server itself
+npm run build       # dist/akalabeth/browser
 ```
 
-## Deploying
+Play it at <https://akalabeth.stonequest.org>.
 
-The site is a static build for a domain root (`dist/apps/Akalabeth/browser`). `deploy/deploy.yml` lints, tests,
-builds and runs the e2e specs on every pull request and push, and deploys pushes to `main` to GitHub Pages. It is not
-active in this monorepo; the extraction to its own repo moves it to `.github/workflows/` and `deploy/CNAME` to
-`public/`. Then Pages needs its source set to "GitHub Actions" and its custom domain set to
-`akalabeth.stonequest.org` in the repository settings, because a deploy from Actions ignores `CNAME`.
+Every pull request and push is linted, tested, built and run through the browser specs by
+`.github/workflows/deploy.yml`; pushes to `main` are then deployed to GitHub Pages. The site is built for a domain
+root, so Pages needs its source set to "GitHub Actions" and its custom domain set to `akalabeth.stonequest.org` in
+the repository settings: a deploy from Actions ignores `public/CNAME`.
+
+## Layout
+
+| Folder | What lives there |
+| --- | --- |
+| `src/app/runtime/` | The Apple II: hi-res and text screens, keyboard, the Applesoft number package. Knows nothing about the game. |
+| `src/app/port/` | The game rules, ported from the listing, with fixtures recorded from the real ROMs. |
+| `src/app/renderers/` | The listing's drawing statements, plotted pixel for pixel. |
+| `src/app/ui/` | The Angular shell: screen, CRT effect, touch pad, settings, text mirror. |
+| `e2e/` | Playwright specs, including pixel checks against the oracle's screens. |
+| `tools/oracle/` | Offline Python harness that runs the original on the real ROMs; see its README. |
 
 ## Licence
 

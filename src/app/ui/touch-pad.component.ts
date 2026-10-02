@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, ElementRef, output, viewChild } from '@angular/core';
-import type { OutputEmitterRef, Signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, output, viewChild } from '@angular/core';
+import type { ElementRef, OutputEmitterRef, Signal } from '@angular/core';
 
 import { appleKeyCodeOf } from '../runtime/keyboard';
 import { COMMAND_KEYS, MOVEMENT_KEYS } from './touch-keys';

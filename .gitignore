@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+coverage/
+tmp/
+.angular/
+
+# Playwright
+e2e/test-results/
+e2e/playwright-report/
+
+# Oracle inputs: the listing and the ROMs are fetched and built locally, never committed
+tools/oracle/listing/
+tools/oracle/rom/
+tools/oracle/__pycache__/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store

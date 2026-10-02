@@ -11,7 +11,7 @@ import roundCases from './fixtures/round.json';
 import type { FacImage } from './math-package';
 import { IllegalQuantityError, MathPackage } from './math-package';
 
-// Every expected value here was recorded from the real Applesoft ROM; see apps/Akalabeth/tools/oracle.
+// Every expected value here was recorded from the real Applesoft ROM; see tools/oracle.
 
 function image(hex: string): FacImage {
   return [ 0, 2, 4, 6, 8, 10, 12 ].map((offset: number): number => parseInt(hex.substring(offset, offset + 2), 16)) as unknown as FacImage;

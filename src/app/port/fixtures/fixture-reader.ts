@@ -1,5 +1,5 @@
 // Readers for the fixtures recorded from the original program running on the real ROMs
-// (apps/Akalabeth/tools/oracle/generate_game_fixtures.py). Sessions store each step as changes
+// (tools/oracle/generate_game_fixtures.py). Sessions store each step as changes
 // against the previous one; replay() rebuilds the full machine state at every key.
 
 export interface IPerspectiveTables {

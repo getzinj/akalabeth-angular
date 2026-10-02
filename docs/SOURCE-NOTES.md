@@ -1,6 +1,6 @@
 # Akalabeth source notes (Phase 0)
 
-Reference for the port in [`docs/plans/2026-10-akalabeth-port.md`](../plans/2026-10-akalabeth-port.md).
+Reference for the port in [`port-plan.md`](port-plan.md).
 The original files are **linked, not vendored**. The game draws everything as vector lines and text, so it uses no
 original image or text file. Everything below refers to
 [`videogamepreservation/akalabeth`](https://github.com/videogamepreservation/akalabeth) pinned at commit
@@ -81,7 +81,7 @@ Key codes in the command loop: 141 Return = forward / North, 149 right arrow = t
   gives the same world as on a real Apple II.
 - Expression semantics the fixtures exercise: `FRMEVL` pushes the left operand *rounded*, while the right operand
   keeps its rounding byte, so `C(2) - RND(1)*25` subtracts a product that still carries its extension.
-- Fixtures were recorded by running the real ROM in py65 (`apps/Akalabeth/tools/oracle`); the ROM itself is
+- Fixtures were recorded by running the real ROM in py65 (`tools/oracle`); the ROM itself is
   built locally from the reconstructed source and never committed.
 
 ## Listing corrections and loading (phase 4)
@@ -195,10 +195,10 @@ Key codes in the command loop: 141 Return = forward / North, 149 right arrow = t
 - **Decision (owner, 2026-10-01):** keep the name "Akalabeth" and publish. Ship only assets the game actually uses
   (none from the original) and link to the original repository for everything else. If a rights holder asks, the
   app comes down promptly. The risk is accepted knowingly; it is not cleared. The wording is in
-  [`apps/Akalabeth/NOTICE`](../../apps/Akalabeth/NOTICE).
+  [`NOTICE`](../NOTICE).
 - An earlier commit on the phase-0 branch vendored the original files; they were removed again in phase 1. Squash-merge
   so the originals never reach `main`.
 - This differs from `getzinj/wizardry-angular`, which also vendors no original data (the player supplies their own
-  disk). Stonequest itself renamed.
+  disk).
 - Fonts: the Apple II character ROM is Apple-copyrighted and is not part of the original project; use a freely
   licensed Apple II-style font.

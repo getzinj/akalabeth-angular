@@ -1,19 +1,18 @@
 # Akalabeth port
 
-> **Live plan.** Status per phase is tracked in [`docs/PLAN.md` §AE](../PLAN.md); flip the box there when a
-> PR lands. This file is the rationale and the per-phase checklist. Source findings are in
-> [`docs/akalabeth/SOURCE-NOTES.md`](../akalabeth/SOURCE-NOTES.md).
+> **Live plan.** This file is the rationale and the per-phase checklist. Source findings are in
+> [`SOURCE-NOTES.md`](SOURCE-NOTES.md).
 
 ## Context
 
-Port Richard Garriott's 1979 *Akalabeth* (one 676-line Applesoft listing) to Angular as a new Nx app,
-`apps/Akalabeth`, in this workspace, to be extracted into its own repo later. Moria followed the same path
-(`apps/Moria` from `c768313`, extracted in `66981d6`); its plan is in `getzinj/moria-angular`,
-`docs/port-plan.md`.
+Port Richard Garriott's 1979 *Akalabeth* (one 676-line Applesoft listing) to Angular. It was built as a new Nx
+app, `apps/Akalabeth`, in `getzinj/Stonequest-Angular` (phases 0 to 9) and extracted into this repo in phase 10.
+Moria followed the same path (`apps/Moria` from `c768313`, extracted in `66981d6`); its plan is in
+`getzinj/moria-angular`, `docs/port-plan.md`. Paths in the phase table below are the monorepo's.
 
 Decisions:
 
-- **Location.** New Nx app now, own repo later. Keep it self-contained.
+- **Location.** A new Nx app first, then its own repo (phase 10).
 - **Fidelity.** Pixel-faithful 280×192 Apple II HGR (mixed mode) and 40×24 text, with simulated CRT
   rastering. The image scales to the available space.
 - **Logic.** Idiomatic TypeScript hand-port, verified against a dev-only Applesoft interpreter used as a
@@ -36,7 +35,7 @@ A standalone, non-Nx Angular 22 repo (Vitest, zoneless, GitHub Pages at `wizardr
 - **Deploy** as a static site on GitHub Pages with a CNAME after extraction, not Vercel.
 - **Legal:** like Wizardry, Akalabeth vendors no original data; it links to the original repo pinned at a commit. Unlike Wizardry, it uses the original name and publishes (decision in `SOURCE-NOTES.md` §Licence).
 
-## Architecture (`apps/Akalabeth/src/app/`; no Firebase, auth or `api/`)
+## Architecture (`src/app/`; no Firebase, auth or `api/`)
 
 - `runtime/`: `hgr-framebuffer`, `hgr-line-rasterizer` (ROM HPLOT algorithm, clipping, truncation),
   `text-screen` (40×24, window, cursor, inverse), `keyboard-latch`, `charset`, and `apple-rnd` (reseed on negative
@@ -47,9 +46,8 @@ A standalone, non-Nx Angular 22 repo (Vitest, zoneless, GitHub Pages at `wizardr
 - `renderers/`: dungeon wireframe (lines 200–490), monster vector art (300–400, 3087), overworld (100–190).
 - `ui/`: canvas component and CRT presenter.
 - One async game loop awaiting keys, behind an `IApple2Screen` seam like Stonequest's `IGamePresenter`.
-- `apps/Akalabeth/oracle/`: dev-only interpreter, excluded from the production build. It drives the same
-  `apple2/` layer so framebuffers compare directly.
-- ESLint `no-restricted-imports` forbidding `apps/Stonequest` and `@getzinj/{dtos,view-models,...}`; tag `layer:app`.
+- `tools/oracle/`: dev-only, offline harness (Python, py65) that runs the original listing on the real ROMs and
+  records the committed fixtures. Not part of the production build.
 
 ## Phases (one PR each)
 
@@ -65,8 +63,8 @@ A standalone, non-Nx Angular 22 repo (Vitest, zoneless, GitHub Pages at `wizardr
 | 6 | Renderers, pixel-diffed against the oracle (every wall, door, ladder, chest; all 10 monsters at every depth) | ✅ `renderers/hires-painter.ts` draws the overworld view, the corridor (walls, doors, secret doors, ladders, chests) and the ten monsters through the `IPainter` seam. The coordinates are the listing's own HPLOT expressions, generated into `renderers/drawing-programs.ts` by `tools/oracle/generate_drawing_programs.py` and evaluated by `runtime/applesoft/basic-expression.ts` in the ROM's float arithmetic, then cut down by `GETADR`/`GETBYT` (ported and checked on 638 recorded cases) and plotted by `HiresScreen`. All 15 recorded sessions replay with the hi-res page equal to the oracle's after every key (5,800 checks across text, inverse video, mode and pixels); a new gallery scenario pokes each monster into an opened corridor at five distances, so every drawing line has run |
 | 7 | Presentation: scaling canvas, CRT presenter, input | ✅ The game is mounted: `AppComponent` runs `Game` with `HiresPainter` on an `AppleMachine`. The 280x192 picture fits the space at 4:3; the moderate CRT effect (a blurred glow layer plus one scanline per Apple row, in CSS) and four screen colours are chosen from a corner menu and remembered in `localStorage`; keyboard input ignores Ctrl, Meta and Alt chords; a button pad with a device-keyboard button shows on touch screens; a hidden live region announces the text screen. Initial bundle 219 kB (budget 500). Unit specs for each part, and seven Playwright specs that play the real game (lucky number to the overworld, CRT toggle, remembered colour, 4:3 shape). Left for later: authentic draw speed, curvature and NTSC fringing |
 | 8 | Hardening: pixel e2e, budget, accessibility, `find-cycles` | ✅ `e2e/pixels.spec.ts` plays recorded sessions in the real browser and compares the canvas, pixel for pixel, with the picture the oracle's recorded text and hi-res pages make (17 checkpoints across five sessions; a wrong screen was shown to fail). `e2e/accessibility.spec.ts` covers language, title, the named picture, the live text region, keyboard use of the settings, Tab order, browser shortcuts, and on a phone the named touch buttons, fit and no sideways scroll. It found a real bug, now fixed: the game swallowed Enter and Space on the settings controls, so keyboard users could not open them. `madge --circular` finds no cycles. The initial budget is tightened to 300 kB warning and 500 kB error (the build is 219 kB). If the game throws something the original would not trap, a banner now says so |
-| 9 | Deploy: static build to GitHub Pages as in Wizardry (workflow plus CNAME); no Vercel project. Everything is prepared in `apps/Akalabeth/deploy/` (`deploy.yml`, modelled on Moria's: lint, test, build and e2e on every PR and push, deploy only on `main`; `CNAME` = `akalabeth.stonequest.org`) but not switched on here, because this repo is private and has one Pages site and `main` belongs to Stonequest. Phase 10 moves both files to the new repo (`.github/workflows/`, `public/`), fixes the paths, and turns Pages on. The build now ships `LICENSE`, `NOTICE`, `THIRD-PARTY-NOTICES.md` (the Microsoft BASIC MIT notice) and `3rdpartylicenses.txt`; a production build served statically plays and returns 200 for all four | ✅ |
-| 10 | Extract to its own repo | ⬜ |
+| 9 | Deploy: static build to GitHub Pages as in Wizardry (workflow plus CNAME); no Vercel project | ✅ Prepared in the monorepo as `deploy/deploy.yml` (modelled on Moria's: lint, test, build and e2e on every PR and push, deploy only on `main`) and `deploy/CNAME`, and held back until extraction because that repo is private. The build ships `LICENSE`, `NOTICE`, `THIRD-PARTY-NOTICES.md` and `3rdpartylicenses.txt`. |
+| 10 | Extract to its own repo | ✅ `getzinj/akalabeth-angular`, public. History of `apps/Akalabeth` and these two docs kept with `git filter-repo` (24 commits, no ROMs, listing or original assets in it). Added the workspace skeleton Nx provided: Angular CLI `angular.json`, `package.json` (versions as Moria's), ESLint flat config, tsconfigs, `.editorconfig`, `CLAUDE.md`. E2e now starts `ng serve` on port 4202. The workflow moved to `.github/workflows/` and `CNAME` to `public/`. |
 
 Out of scope unless asked: save/load, new classes or monsters, balance changes (the original has no save).
 
@@ -77,7 +75,7 @@ nothing in CI needs the ROMs.
 
 ## Verification
 
-- Per phase: `npm exec nx run Akalabeth:lint`, `:test`, `:build:production`, plus `nx affected` for shared code.
+- Per change: `npm run lint`, `npm test`, `npm run build`, `npm run e2e`.
 - Fidelity gate (phases 5–6): zero pixel or text differences against the oracle over a fixed corpus of seeds
   and key scripts.
 - Phase 7 onward: run the app and screenshot title, overworld, dungeon, combat, shop and Lord British screens at
