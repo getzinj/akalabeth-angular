@@ -198,6 +198,20 @@ export class TextScreen {
   }
 
 
+  /** Fills the page from recorded rows and inverse masks ('1' for inverse), for specs and for checking pixels. */
+  public load(lines: readonly string[], inverseMasks: readonly string[]): void {
+    for (let row: number = 0; row < TEXT_ROWS; row++) {
+      for (let column: number = 0; column < TEXT_COLUMNS; column++) {
+        const ascii: number = (lines[row] ?? '').charCodeAt(column) || 0x20;
+        const inverse: boolean = (inverseMasks[row] ?? '')[column] === '1';
+
+        this.cells[(row * TEXT_COLUMNS) + column] = inverse ? (ascii & 0x3F) : (ascii | 0x80);
+      }
+    }
+    this.dirty = true;
+  }
+
+
   public character(column: number, row: number): string {
     return TextScreen.characterOf(this.cells[(row * TEXT_COLUMNS) + column]);
   }

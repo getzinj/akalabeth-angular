@@ -30,6 +30,7 @@ import type { ITouchKey } from './touch-keys';
     <input
       #typer
       class="typer"
+      data-game-input
       type="text"
       autocomplete="off"
       autocapitalize="characters"
