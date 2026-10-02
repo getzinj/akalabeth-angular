@@ -1,10 +1,13 @@
 // The Apple II+ keyboard as the game reads it: PEEK(-16384) ($C000) gives the last key with bit 7
 // set while it is unread, and POKE -16368,0 ($C010) clears that bit. GET waits for a key and
-// clears it too. There is no buffer: a second key before the first is read replaces it.
+// clears it too. There is no buffer: a second key before the first is read replaces it. The II+ had
+// no up and down arrows; these two are the codes the IIe gave them, and only the command prompt acts on them.
 
 export const KEY_RETURN: number = 0x8D;
 export const KEY_LEFT_ARROW: number = 0x88;
 export const KEY_RIGHT_ARROW: number = 0x95;
+export const KEY_UP_ARROW: number = 0x8B;
+export const KEY_DOWN_ARROW: number = 0x8A;
 export const KEY_ESCAPE: number = 0x9B;
 export const KEY_SPACE: number = 0xA0;
 
@@ -21,6 +24,10 @@ export function appleKeyCodeOf(key: string): number | null {
     code = KEY_LEFT_ARROW;
   } else if (key === 'ArrowRight') {
     code = KEY_RIGHT_ARROW;
+  } else if (key === 'ArrowUp') {
+    code = KEY_UP_ARROW;
+  } else if (key === 'ArrowDown') {
+    code = KEY_DOWN_ARROW;
   } else if (key === 'Escape') {
     code = KEY_ESCAPE;
   } else if (key.length === 1) {

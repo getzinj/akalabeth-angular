@@ -16,9 +16,9 @@ letters shown. Then:
 
 | Key | Does |
 |---|---|
-| Return | Forward in a dungeon, north on the overworld |
+| Return, or up arrow | Forward in a dungeon, north on the overworld |
 | Left and right arrows | Turn left and right, or west and east |
-| `/` | Turn around, or south |
+| `/`, or down arrow | Turn around, or south |
 | `A` (or Esc) | Attack, then the weapon's letter |
 | `X` | Enter a town, dungeon or castle; use a ladder |
 | `S` | Your stats |

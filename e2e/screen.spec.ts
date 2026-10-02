@@ -56,6 +56,22 @@ test('creating a fighter and leaving the shop draws the overworld', async ({ pag
 });
 
 
+test('the up and down arrows walk north and south', async ({ page }: { page: Page }) => {
+  await page.goto('/');
+  await page.keyboard.type('7');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('1');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('YFFQ');
+  await expect(page.locator('akalabeth-text-mirror pre')).toContainText('COMMAND?');
+  await page.keyboard.press('ArrowUp');
+  await expect(page.locator('akalabeth-text-mirror pre')).toContainText('NORTH');
+  await page.keyboard.press('ArrowDown');
+
+  await expect(page.locator('akalabeth-text-mirror pre')).toContainText('SOUTH');
+});
+
+
 test('the CRT effect can be turned off', async ({ page }: { page: Page }) => {
   await page.goto('/');
   await expect(page.locator('akalabeth-apple-screen .scanlines')).toHaveCount(1);
