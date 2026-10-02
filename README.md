@@ -9,6 +9,26 @@ is linked, not copied; see the [source notes](../../docs/akalabeth/SOURCE-NOTES.
 The plan and progress are in
 [`docs/plans/2026-10-akalabeth-port.md`](../../docs/plans/2026-10-akalabeth-port.md).
 
+## Playing
+
+Type a lucky number and a level, accept your attributes with `Y`, choose Fighter or Mage and shop with the
+letters shown. Then:
+
+| Key | Does |
+|---|---|
+| Return | Forward in a dungeon, north on the overworld |
+| Left and right arrows | Turn left and right, or west and east |
+| `/` | Turn around, or south |
+| `A` (or Esc) | Attack, then the weapon's letter |
+| `X` | Enter a town, dungeon or castle; use a ladder |
+| `S` | Your stats |
+| Space | Pass a turn |
+| `P` | Pause after each fight (asks for Return) |
+
+The gear button in the corner chooses the screen colour (Apple II colour, green, amber or white) and turns the
+CRT effect (scanlines and phosphor glow) on or off; the choice is remembered. On a phone or tablet a button pad
+appears, with a keyboard button for names and numbers. The text on screen is also announced to screen readers.
+
 ## Running
 
 ```sh
