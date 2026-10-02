@@ -23,6 +23,10 @@
           {
             "glob": "**/*",
             "input": "apps/Akalabeth/public"
+          },
+          {
+            "glob": "{LICENSE,NOTICE,THIRD-PARTY-NOTICES.md}",
+            "input": "apps/Akalabeth"
           }
         ],
         "styles": [

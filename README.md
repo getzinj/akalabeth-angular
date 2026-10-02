@@ -38,6 +38,14 @@ npx nx lint Akalabeth
 npx nx e2e Akalabeth
 ```
 
+## Deploying
+
+The site is a static build for a domain root (`dist/apps/Akalabeth/browser`). `deploy/deploy.yml` lints, tests,
+builds and runs the e2e specs on every pull request and push, and deploys pushes to `main` to GitHub Pages. It is not
+active in this monorepo; the extraction to its own repo moves it to `.github/workflows/` and `deploy/CNAME` to
+`public/`. Then Pages needs its source set to "GitHub Actions" and its custom domain set to
+`akalabeth.stonequest.org` in the repository settings, because a deploy from Actions ignores `CNAME`.
+
 ## Licence
 
 GPL-3.0 for the original work of this port only. The game itself belongs to its
